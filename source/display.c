@@ -5,6 +5,8 @@ Display* createDisplay(int width, int height, int scale, int pitch)
     // Init switch gfx
     gfxInitResolution(width, height);
     gfxInitDefault();
+    //gfxConfigureResolution(width, height);
+    //gfxConfigureCrop(0, 0, width, height);
 
     Display* display = (Display*)malloc(sizeof(Display));
     display->width = width;
@@ -13,7 +15,8 @@ Display* createDisplay(int width, int height, int scale, int pitch)
     display->pitch = pitch;
     u32 createdWidth, createdHeight;
     display->framebuffer = (u32*) gfxGetFramebuffer((u32*)&createdWidth, (u32*)&createdHeight);
-    /*
+
+    /* TODO
     u8* title_image = (u8*)title_image_bin;
     u32 pos;
     u32 x, y;
@@ -24,7 +27,7 @@ Display* createDisplay(int width, int height, int scale, int pitch)
         for (y = 0; y < image_height; y++)
         {
             pos = y * width + x;
-            framebuffer[pos] = RGBA8_MAXALPHA(title_image[pos*3+0], title_image[pos*3+1], title_image[pos*3+2]);
+            display->framebuffer[pos] = RGBA8_MAXALPHA(title_image[pos*3+0], title_image[pos*3+1], title_image[pos*3+2]);
         }
     }
     */
@@ -51,19 +54,6 @@ void updateDisplay(Display* display, GPU* gpu)
     gfxSwapBuffers();
 }
 
-/*
-void dumpColors(SDL_Color* colors, int ncolors)
-{
-    printf("Number of colors: %d\n", ncolors);
-    int i;
-    for (i = 0; i < ncolors; i++)
-    {
-        SDL_Color c = colors[i];
-        printf("Color: %3d, R: %d, G: %d, B: %d\n", 
-                i, c.r, c.g, c.b);
-    }
-}
-*/
 void quitDisplay(Display* display)
 {
     free(display);

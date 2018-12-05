@@ -5,9 +5,6 @@
 #include "gpu.h"
 #include <switch.h>
 
-// raw RGB888 image
-//#include "title_image_bin.h"
-
 typedef struct Display Display;
 typedef struct GPU GPU;
 
@@ -24,9 +21,12 @@ Display* createDisplay(int width, int height, int scale, int pitch);
 
 void updateDisplay(Display* display, GPU* gpu);
 
-//void dumpColors(SDL_Color* colors, int ncolors);
-
 void quitDisplay(Display* display);
 
-#endif
+// TODO
+// raw RGB888 image
+// you can make this file with
+// $ xxd -i title_image_bin
+// where title_image_bin is a raw image data export from gimp.
 
+#endif

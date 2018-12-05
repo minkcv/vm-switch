@@ -149,6 +149,8 @@ $(BUILD):
 
 #---------------------------------------------------------------------------------
 # CUSTOM COMMAND MADE BY WILL
+# RyuJinx is a switch emulator that can run some homebrew programs.
+# https://github.com/Ryujinx/Ryujinx
 run: $(BUILD)
 	../ryujinx/Ryujinx.exe ./vm-switch.nro
 

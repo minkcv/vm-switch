@@ -48,19 +48,16 @@ void updateJoystick(JOYSTICK* js, u32 kDown, u32 kUp, u32 kHeld)
         if ((kDown & js->buttons[i]) == js->buttons[i])
         {
             // Leave the other bits but ensure the ith bit is 1
-            gfxExit();
             js->keysAsBits |= (bit << i);
         }
         if ((kHeld & js->buttons[i]) == js->buttons[i])
         {
             // Leave the other bits but ensure the ith bit is 1
-            gfxExit();
             js->keysAsBits |= (bit << i);
         }
         if ((kUp & js->buttons[i]) == js->buttons[i])
         {
             // Leave the other bits but ensure the ith bit is 0
-            gfxExit();
             js->keysAsBits &= (~(bit << i)); // Bitwise inversion
         }
     }

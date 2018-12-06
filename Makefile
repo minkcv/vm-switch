@@ -38,6 +38,10 @@ INCLUDES	:=	include
 EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
 
+APP_AUTHOR	:=	Will Smith
+APP_TITLE	:=	Vapor Spec VM
+APP_VERSION	:=	0.1.0
+
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------

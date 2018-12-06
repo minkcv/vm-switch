@@ -4,26 +4,27 @@ IPU* createIPU()
 {
     IPU* ipu = (IPU*)malloc(sizeof(IPU));
     JOYSTICK* js1 = (JOYSTICK*)malloc(sizeof(JOYSTICK));
-    js1->buttons[0] = KEY_LSTICK_UP;
-    js1->buttons[1] = KEY_LSTICK_DOWN;
-    js1->buttons[2] = KEY_LSTICK_LEFT;
-    js1->buttons[3] = KEY_LSTICK_RIGHT;
-    js1->buttons[4] = KEY_DUP;
-    js1->buttons[5] = KEY_DDOWN;
-    js1->buttons[6] = KEY_DRIGHT;
-    js1->buttons[7] = KEY_DLEFT;
+    js1->buttons[0] = KEY_RSTICK_UP;
+    js1->buttons[1] = KEY_RSTICK_DOWN;
+    js1->buttons[2] = KEY_RSTICK_LEFT;
+    js1->buttons[3] = KEY_RSTICK_RIGHT;
+    js1->buttons[4] = KEY_A;
+    js1->buttons[5] = KEY_B;
+    js1->buttons[6] = KEY_X;
+    js1->buttons[7] = KEY_Y;
     js1->keysAsBits = 0;
     ipu->js1 = js1;
 
     JOYSTICK* js2 = (JOYSTICK*)malloc(sizeof(JOYSTICK));
-    js2->buttons[0] = KEY_RSTICK_UP;
-    js2->buttons[1] = KEY_RSTICK_DOWN;
-    js2->buttons[2] = KEY_RSTICK_LEFT;
-    js2->buttons[3] = KEY_RSTICK_RIGHT;
-    js2->buttons[4] = KEY_A;
-    js2->buttons[5] = KEY_B;
-    js2->buttons[6] = KEY_X;
-    js2->buttons[7] = KEY_Y;
+    
+    js2->buttons[0] = KEY_LSTICK_UP;
+    js2->buttons[1] = KEY_LSTICK_DOWN;
+    js2->buttons[2] = KEY_LSTICK_LEFT;
+    js2->buttons[3] = KEY_LSTICK_RIGHT;
+    js2->buttons[4] = KEY_DUP;
+    js2->buttons[5] = KEY_DDOWN;
+    js2->buttons[6] = KEY_DRIGHT;
+    js2->buttons[7] = KEY_DLEFT;
     js2->keysAsBits = 0;
     ipu->js2 = js2;
 

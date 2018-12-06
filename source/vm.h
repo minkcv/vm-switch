@@ -39,7 +39,7 @@ void run(VM* vm);
 
 void disassemble(Instruction* instr, char* assembly);
 
-Instruction* decode(u16 instr);
+void decode(u16 instr, Instruction* decoded);
 
 void exec(VM* vm, Instruction* instr);
 

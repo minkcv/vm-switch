@@ -28,17 +28,19 @@ VM* createVM(u16* code, u8* rom, Display* display, int debugMode)
 // of a vm from the start of its code
 void run(VM* vm)
 {
+    //u64 tickFrequency = armGetSystemTickFreq();
     u64 displayStartTime = armGetSystemTick();
     u64 displayWaitTime = 16; // 16ms = about 60 refreshes per second
     u64 cpuStartTime = armGetSystemTick();
     u64 cpuInstructionCount = 0;
 
-    // Enforce the instructions per second limit in sync with the display refreshes
+    // Enforce the instructions per second limit
     // 500,000 instructions per second is almost the same as 8064 instructions per 16 milliseconds
-    u32 instructionsPerSecondFactor = 62;
+    u64 instructionsPerSecondFactor = 62;
 
     int wait = 0;
-    while (appletMainLoop())
+    Instruction* decoded = malloc(sizeof(Instruction));
+    while (1)
     {
         hidScanInput();
         u32 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
@@ -59,11 +61,10 @@ void run(VM* vm)
         if (!wait)
         {
             u16 instr = *(vm->pc);
-            Instruction* decoded = decode(instr);
+            decode(instr, decoded);
             exec(vm, decoded);
             vm->pc++;
             cpuInstructionCount++;
-            free(decoded);
 
             if (cpuInstructionCount > INSTRUCTIONS_PER_SECOND / instructionsPerSecondFactor)
                 wait = 1;
@@ -95,6 +96,7 @@ void run(VM* vm)
         if (vm->step)
             vm->breakState = 1;
     }
+    free(decoded);
 }
 
 /*
@@ -287,15 +289,13 @@ void disassemble(Instruction* instr, char* assembly)
 }
 
 // Decodes a u16 instruction into a 16 bit instruction struct
-Instruction* decode(u16 instr)
+void decode(u16 instr, Instruction* decoded)
 {
-    Instruction* decoded = malloc(sizeof(Instruction));
     u16 clean = 0x000F;
     decoded->opcode = instr >> 12 & clean;
     decoded->arg0 = instr >> 8 & clean;
     decoded->arg1 = instr >> 4 & clean;
     decoded->arg2 = instr & clean;
-    return decoded;
 }
 
 // Executes an instruction

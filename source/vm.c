@@ -1,12 +1,12 @@
 #include "vm.h"
 #include "opcodes.h"
 #include "instruction.h"
+#include <SDL2/SDL.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <switch.h>
 
 // Creates a vm with the supplied code
-VM* createVM(u16* code, u8* rom, Display* display, int debugMode)
+VM* createVM(uint16_t* code, uint8_t* rom, Display* display, int debugMode)
 {
     VM* vm = (VM*)malloc(sizeof(VM));
     vm->code = code;
@@ -15,7 +15,7 @@ VM* createVM(u16* code, u8* rom, Display* display, int debugMode)
     vm->breakState = 0;
     vm->step = 0;
     vm->display = display;
-    vm->gpu = createGPU();
+    vm->gpu = createGPU(display);
     vm->ipu = createIPU();
     memset(vm->memory, 0, sizeof(vm->memory[0][0]) * MEMORY_SEGMENT_COUNT * MEMORY_SEGMENT_SIZE);
     memset(vm->regs, 0, sizeof(vm->regs[0]) * REGISTER_COUNT);
@@ -28,31 +28,40 @@ VM* createVM(u16* code, u8* rom, Display* display, int debugMode)
 // of a vm from the start of its code
 void run(VM* vm)
 {
-    //u64 tickFrequency = armGetSystemTickFreq();
-    u64 displayStartTime = armGetSystemTick();
-    u64 displayWaitTime = 16; // 16ms = about 60 refreshes per second
-    u64 cpuStartTime = armGetSystemTick();
-    u64 cpuInstructionCount = 0;
+    uint32_t displayStartTime = SDL_GetTicks();
+    uint32_t displayWaitTime = 16; // 16ms = about 60 refreshes per second
+    uint32_t cpuStartTime = SDL_GetTicks();
+    uint32_t cpuInstructionCount = 0;
 
-    // Enforce the instructions per second limit
+    // Enforce the instructions per second limit in sync with the display refreshes
     // 500,000 instructions per second is almost the same as 8064 instructions per 16 milliseconds
-    u64 instructionsPerSecondFactor = 62;
+    uint32_t instructionsPerSecondFactor = 62;
 
     int wait = 0;
+    SDL_Event event;
+    SDL_PollEvent(&event);
     Instruction* decoded = malloc(sizeof(Instruction));
-    while (1)
+    while (event.type != SDL_QUIT)
     {
-        hidScanInput();
-        u32 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-        u32 kUp = hidKeysUp(CONTROLLER_P1_AUTO);
-        u32 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
-
-        if (kDown & KEY_PLUS)
+        while (SDL_PollEvent(&event))
         {
-            break; // break in order to return to hbmenu
+            if (event.key.keysym.sym == SDLK_ESCAPE && event.type == SDL_KEYUP)
+            {
+                printf("Exiting at user escape\n");
+                exit(0);
+            }
+            if (vm->debugMode && event.type == SDL_KEYUP)
+            {
+                handleDebugKey(vm, event.key.keysym.sym);
+            }
+            if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
+            {
+                if (event.key.repeat == 0)
+                {
+                    updateIPU(vm->ipu, event.key, vm->memory);
+                }
+            }
         }
-        // TODO: handleDebugKey(vm, event.key.keysym.sym);
-        updateIPU(vm->ipu, kDown, kUp, kHeld, vm->memory);
 
         if (vm->breakState)
             continue;
@@ -60,7 +69,7 @@ void run(VM* vm)
         // Executing
         if (!wait)
         {
-            u16 instr = *(vm->pc);
+            uint16_t instr = *(vm->pc);
             decode(instr, decoded);
             exec(vm, decoded);
             vm->pc++;
@@ -69,7 +78,7 @@ void run(VM* vm)
             if (cpuInstructionCount > INSTRUCTIONS_PER_SECOND / instructionsPerSecondFactor)
                 wait = 1;
         }
-        if ((armGetSystemTick() - cpuStartTime) > 1000 / instructionsPerSecondFactor)
+        if ((SDL_GetTicks() - cpuStartTime) > 1000 / instructionsPerSecondFactor)
         {
             // 16 milliseconds have passed
             // Reset the instruction count and timer
@@ -79,19 +88,19 @@ void run(VM* vm)
                 //printf("Desired: %d Actual: %d\n", INSTRUCTIONS_PER_SECOND / instructionsPerSecondFactor, cpuInstructionCount);
             }
             cpuInstructionCount = 0;
-            cpuStartTime = armGetSystemTick();
+            cpuStartTime = SDL_GetTicks();
             wait = 0;
         }
-        if (displayStartTime + displayWaitTime < armGetSystemTick())
+        if (displayStartTime + displayWaitTime < SDL_GetTicks())
         {
             updateGPU(vm->gpu, vm->memory);
             if (vm->gpu->active)
             {
                 readSpritesFromMem(vm->gpu, vm->memory);
                 drawSprites(vm->gpu, vm->memory);
-                updateDisplay(vm->display, vm->gpu);
+                updateDisplay(vm->display);
             }
-            displayStartTime = armGetSystemTick();
+            displayStartTime = SDL_GetTicks();
         }
         if (vm->step)
             vm->breakState = 1;
@@ -99,7 +108,6 @@ void run(VM* vm)
     free(decoded);
 }
 
-/*
 void handleDebugKey(VM* vm, SDL_Keycode key)
 {
     if (key == SDLK_F2)
@@ -133,7 +141,8 @@ void handleDebugKey(VM* vm, SDL_Keycode key)
                 instructionSegment, instructionOffset);
         char* assembly = malloc(sizeof(char) * 256);
         memset(assembly, 0, sizeof(char) * 256);
-        Instruction* instr = decode(*(vm->pc));
+        Instruction* instr = malloc(sizeof(Instruction));
+        decode(*(vm->pc), instr);
         disassemble(instr, assembly);
         free(instr);
         printf("ASM: %s\n", assembly);
@@ -189,7 +198,8 @@ void handleDebugKey(VM* vm, SDL_Keycode key)
             int instructionOffset = instructionCount % JUMP_SEGMENT_SIZE;
             char* assembly = malloc(sizeof(char) * 256);
             memset(assembly, 0, sizeof(char) * 256);
-            Instruction* instr = decode(*(vm->pc + i));
+            Instruction* instr = malloc(sizeof(Instruction));
+            decode(*(vm->pc + i), instr);
             disassemble(instr, assembly);
             free(instr);
             // Print star for current instruction
@@ -206,12 +216,11 @@ void handleDebugKey(VM* vm, SDL_Keycode key)
         }
     }
 }
-*/
 
 void disassemble(Instruction* instr, char* assembly)
 {
     // If the instructions reads the last 2 arguments as a constant
-    u8 constant = ((instr->arg1 << 4) & 0x00F0) + instr->arg2;
+    uint8_t constant = ((instr->arg1 << 4) & 0x00F0) + instr->arg2;
     switch(instr->opcode)
     {
         case EXT:
@@ -288,10 +297,10 @@ void disassemble(Instruction* instr, char* assembly)
     }
 }
 
-// Decodes a u16 instruction into a 16 bit instruction struct
-void decode(u16 instr, Instruction* decoded)
+// Decodes a uint16_t instruction into a 16 bit instruction struct
+void decode(uint16_t instr, Instruction* decoded)
 {
-    u16 clean = 0x000F;
+    uint16_t clean = 0x000F;
     decoded->opcode = instr >> 12 & clean;
     decoded->arg0 = instr >> 8 & clean;
     decoded->arg1 = instr >> 4 & clean;

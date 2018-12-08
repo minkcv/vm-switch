@@ -40,7 +40,7 @@ EXEFS_SRC	:=	exefs_src
 
 APP_AUTHOR	:=	Will Smith
 APP_TITLE	:=	Vapor Spec VM
-APP_VERSION	:=	0.1.0
+APP_VERSION	:=	0.2.0
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -57,7 +57,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lnx
+LIBS	:= -lSDL2 -lglad -lEGL -lglapi -ldrm_nouveau -lnx
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -88,10 +88,11 @@ BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
+# CHANGED BY WILL to use CXX for C files because we need EGL which is C++
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(CPPFILES)),)
 #---------------------------------------------------------------------------------
-	export LD	:=	$(CC)
+	export LD	:=	$(CXX)
 #---------------------------------------------------------------------------------
 else
 #---------------------------------------------------------------------------------

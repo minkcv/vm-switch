@@ -4,61 +4,59 @@ IPU* createIPU()
 {
     IPU* ipu = (IPU*)malloc(sizeof(IPU));
     JOYSTICK* js1 = (JOYSTICK*)malloc(sizeof(JOYSTICK));
-    js1->buttons[0] = KEY_LSTICK_UP;
-    js1->buttons[1] = KEY_LSTICK_DOWN;
-    js1->buttons[2] = KEY_LSTICK_LEFT;
-    js1->buttons[3] = KEY_LSTICK_RIGHT;
-    js1->buttons[4] = KEY_DUP;
-    js1->buttons[5] = KEY_DDOWN;
-    js1->buttons[6] = KEY_DRIGHT;
-    js1->buttons[7] = KEY_DLEFT;
+    js1->buttons[0] = SDLK_UP;
+    js1->buttons[1] = SDLK_DOWN;
+    js1->buttons[2] = SDLK_LEFT;
+    js1->buttons[3] = SDLK_RIGHT;
+    js1->buttons[4] = SDLK_RCTRL; // Right control
+    js1->buttons[5] = SDLK_RALT; // Right alt
+    js1->buttons[6] = SDLK_RSHIFT; // Righ shift
+    js1->buttons[7] = SDLK_RETURN; // AKA Enter
     js1->keysAsBits = 0;
     ipu->js1 = js1;
 
     JOYSTICK* js2 = (JOYSTICK*)malloc(sizeof(JOYSTICK));
-    js2->buttons[0] = KEY_RSTICK_UP;
-    js2->buttons[1] = KEY_RSTICK_DOWN;
-    js2->buttons[2] = KEY_RSTICK_LEFT;
-    js2->buttons[3] = KEY_RSTICK_RIGHT;
-    js2->buttons[4] = KEY_A;
-    js2->buttons[5] = KEY_B;
-    js2->buttons[6] = KEY_X;
-    js2->buttons[7] = KEY_Y;
+    js2->buttons[0] = SDLK_w;
+    js2->buttons[1] = SDLK_s;
+    js2->buttons[2] = SDLK_a;
+    js2->buttons[3] = SDLK_d;
+    js2->buttons[4] = SDLK_LCTRL; // Left control
+    js2->buttons[5] = SDLK_LALT; // Left alt
+    js2->buttons[6] = SDLK_LSHIFT; // Left shift
+    js2->buttons[7] = SDLK_TAB;
     js2->keysAsBits = 0;
     ipu->js2 = js2;
 
     return ipu;
 }
 
-void updateIPU(IPU* ipu, u32 kDown, u32 kUp, u32 kHeld,
-        u8 memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE])
+void updateIPU(IPU* ipu, SDL_KeyboardEvent kEvent, 
+        uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE])
 {
-    updateJoystick(ipu->js1, kDown, kUp, kHeld);
-    updateJoystick(ipu->js2, kDown, kUp, kHeld);
+    updateJoystick(ipu->js1, kEvent);
+    updateJoystick(ipu->js2, kEvent);
     memory[JOYSTICK_SEG][JOYSTICK_1_OFFSET] = ipu->js1->keysAsBits;
     memory[JOYSTICK_SEG][JOYSTICK_2_OFFSET] = ipu->js2->keysAsBits;
 }
 
-void updateJoystick(JOYSTICK* js, u32 kDown, u32 kUp, u32 kHeld)
+void updateJoystick(JOYSTICK* js, SDL_KeyboardEvent kEvent)
 {
     int i;
-    u8 bit = 1;
+    uint8_t bit = 1;
     for (i = 0; i < NUM_JOYSTICK_BUTTONS; i++)
     {
-        if ((kDown & js->buttons[i]) == js->buttons[i])
+        if (kEvent.keysym.sym == js->buttons[i])
         {
-            // Leave the other bits but ensure the ith bit is 1
-            js->keysAsBits |= (bit << i);
-        }
-        if ((kHeld & js->buttons[i]) == js->buttons[i])
-        {
-            // Leave the other bits but ensure the ith bit is 1
-            js->keysAsBits |= (bit << i);
-        }
-        if ((kUp & js->buttons[i]) == js->buttons[i])
-        {
-            // Leave the other bits but ensure the ith bit is 0
-            js->keysAsBits &= (~(bit << i)); // Bitwise inversion
+            if (kEvent.type == SDL_KEYDOWN)
+            {
+                // Leave the other bits but ensure the ith bit is 1
+                js->keysAsBits |= (bit << i);
+            }
+            else if (kEvent.type == SDL_KEYUP)
+            {
+                // Leave the other bits but ensure the ith bit is 0
+                js->keysAsBits &= (~(bit << i)); // Bitwise inversion
+            }
         }
     }
 }

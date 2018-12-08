@@ -4,11 +4,11 @@
 #include "constants.h"
 #include "vm.h"
 #include <stdint.h>
-#include <switch.h>
-#include <stdlib.h>
+#include <SDL2/SDL.h>
 
 typedef struct VM VM;
 typedef struct GPU GPU;
+typedef struct Display Display;
 
 // Sprite Attribute
 // Describes a sprite and how it should be rendered
@@ -19,13 +19,13 @@ typedef struct
     unsigned int flipVer : 1;
     unsigned int color4Alpha : 1;
     // 4 bits here for use later
-    u8 x;
-    u8 y;
-    u8 width;
-    u8 height;
-    u8 segmentAddr;
-    u8 byteAddr;
-    u8 colors[4];
+    uint8_t x;
+    uint8_t y;
+    uint8_t width;
+    uint8_t height;
+    uint8_t segmentAddr;
+    uint8_t byteAddr;
+    uint8_t colors[4];
 } SpriteAttr;
 
 // Graphics Processing Unit
@@ -33,24 +33,24 @@ typedef struct
 struct GPU
 {
     SpriteAttr sprAttrs[NUM_SPRITES];
-    u8* pixels;
+    SDL_Surface* surface;
     int pitch;
     int bytesPerPixel;
     unsigned int active : 1;
     unsigned int refreshed : 1; // Changes 0 -> 1 or 1 -> 0 when the display refreshes
 };
 
-GPU* createGPU();
+GPU* createGPU(Display* display);
 
-void updateGPU(GPU* gpu, u8 memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE]);
+void updateGPU(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE]);
 
-void readSpritesFromMem(GPU* gpu, u8 memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE]);
+void readSpritesFromMem(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE]);
 
-void drawSprites(GPU* gpu, u8 memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE]);
+void drawSprites(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE]);
 
-u8 getRed(u8 paletteIndex);
-u8 getGreen(u8 paletteIndex);
-u8 getBlue(u8 paletteIndex);
+uint8_t getRed(uint8_t paletteIndex);
+uint8_t getGreen(uint8_t paletteIndex);
+uint8_t getBlue(uint8_t paletteIndex);
 
 
 #endif

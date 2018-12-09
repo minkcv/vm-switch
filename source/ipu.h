@@ -16,10 +16,10 @@ struct IPU
 
 IPU* createIPU();
 
-void updateIPU(IPU* ipu, SDL_KeyboardEvent kEvent,
+void updateIPU(IPU* ipu, SDL_Event event,
         uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE]);
 
-void updateJoystick(JOYSTICK* js, SDL_KeyboardEvent kEvent);
+void updateJoystick(JOYSTICK* js, SDL_Event event);
 
 #endif
 

@@ -41,11 +41,16 @@ void run(VM* vm)
     SDL_Event event;
     SDL_PollEvent(&event);
     Instruction* decoded = malloc(sizeof(Instruction));
-    while (event.type != SDL_QUIT)
+
+    // Is SDL_QUIT the home button on switch?
+    // Is 10 the plus button?
+    while (event.type != SDL_QUIT && 
+          (event.type == SDL_JOYBUTTONDOWN && event.jbutton.button != 10))
     {
         while (SDL_PollEvent(&event))
         {
-            if (event.key.keysym.sym == SDLK_ESCAPE && event.type == SDL_KEYUP)
+            if (event.jbutton.button == 10 &&  // Is 10 the plus?
+                event.type == SDL_JOYBUTTONDOWN)
             {
                 printf("Exiting at user escape\n");
                 exit(0);
@@ -54,12 +59,11 @@ void run(VM* vm)
             {
                 handleDebugKey(vm, event.key.keysym.sym);
             }
-            if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
+            if (event.type == SDL_JOYBUTTONDOWN ||
+                event.type == SDL_JOYBUTTONUP ||
+                event.type == SDL_JOYAXISMOTION)
             {
-                if (event.key.repeat == 0)
-                {
-                    updateIPU(vm->ipu, event.key, vm->memory);
-                }
+                updateIPU(vm->ipu, event, vm->memory);
             }
         }
 

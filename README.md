@@ -2,18 +2,20 @@
 
 An implementation of [Vapor Spec](https://github.com/minkcv/vm) for Nintendo Switch Homebrew.
 
+Do you want to develop games for Windows, Linux, and Nintendo Switch Homebrew without having to make any changes to the game code at all? This is the place for you!
+
 ## Building
 See the [devkitPro Getting Started page](https://devkitpro.org/wiki/Getting_Started).
 
-then,
+Install dependencies
+
+    pacman -S devkitA64 libnx switch-tools switch-sdl2
+
+then, after cloning this repo,
 
     $ cd vm-switch
     $ make
 
-Should produce an nro and nso for switch homebrew.
-
-You can also use the experimental switch emulator [Ryujinx](https://github.com/Ryujinx/Ryujinx) to run this.
-But if you're not developing this project, you can just use [Vapor Spec for desktop](https://github.com/minkcv/vm/releases)
-
+Should produce an nro for switch homebrew.
 
 I AM NOT RESPONSIBLE FOR DAMAGE OR DATA LOSS ON YOUR NINTENDO SWITCH

@@ -9,6 +9,8 @@ struct JOYSTICK
 {
     SDL_Keycode buttons[NUM_JOYSTICK_BUTTONS]; // Up, Down, Left, Right, A, B, C, D
     uint8_t keysAsBits; // LSB = Up, MSB = D. 1 = pressed, 0 = not pressed
+    SDL_Joystick* sdlJoystick;
+    uint8_t which;
 };
 
 #endif

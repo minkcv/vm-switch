@@ -2,7 +2,7 @@
 
 Display* createDisplay(int width, int height, int scale, int pitch)
 {
-    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
 
     Display* display = (Display*)malloc(sizeof(Display));
     display->width = width;
@@ -34,4 +34,3 @@ void quitDisplay(Display* display)
     display = NULL;
     SDL_Quit();
 }
-

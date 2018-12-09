@@ -43,18 +43,11 @@ void run(VM* vm)
     Instruction* decoded = malloc(sizeof(Instruction));
 
     // Is SDL_QUIT the home button on switch?
-    // Is 10 the plus button?
     while (event.type != SDL_QUIT && 
-          (event.type == SDL_JOYBUTTONDOWN && event.jbutton.button != 10))
+          !(event.type == SDL_JOYBUTTONDOWN && event.jbutton.button == 10))
     {
         while (SDL_PollEvent(&event))
         {
-            if (event.jbutton.button == 10 &&  // Is 10 the plus?
-                event.type == SDL_JOYBUTTONDOWN)
-            {
-                printf("Exiting at user escape\n");
-                exit(0);
-            }
             if (vm->debugMode && event.type == SDL_KEYUP)
             {
                 handleDebugKey(vm, event.key.keysym.sym);
@@ -110,6 +103,14 @@ void run(VM* vm)
             vm->breakState = 1;
     }
     free(decoded);
+
+    // Really ought to be in a ipu destory function.
+    if (SDL_JoystickGetAttached(0))
+        SDL_JoystickClose(0);
+
+    free(vm->ipu->js1);
+    free(vm->ipu->js2);
+    free(vm->ipu);
 }
 
 void handleDebugKey(VM* vm, SDL_Keycode key)

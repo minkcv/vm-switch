@@ -7,9 +7,7 @@
 #include "gpu.h"
 #include "ipu.h"
 #include <stdint.h>
-#include <switch.h>
-#include <stdlib.h>
-#include <string.h>
+#include <SDL2/SDL.h>
 
 typedef struct VM VM;
 typedef struct GPU GPU;
@@ -17,11 +15,11 @@ typedef struct Display Display;
 
 struct VM
 {
-    u8 regs[REGISTER_COUNT]; // General purpose registers
+    uint8_t regs[REGISTER_COUNT]; // General purpose registers
     // Memory is indexed by segment and then byte
-    u8 memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE];
-    u16* pc; // Program counter / instruction pointer
-    u16* code; // List of instructions
+    uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE];
+    uint16_t* pc; // Program counter / instruction pointer
+    uint16_t* code; // List of instructions
     GPU* gpu;
     IPU* ipu;
     Display* display;
@@ -31,15 +29,15 @@ struct VM
     int step;
 };
 
-VM* createVM(u16* code, u8* rom, Display* display, int debugMode);
+VM* createVM(uint16_t* code, uint8_t* rom, Display* display, int debugMode);
 
 void run(VM* vm);
 
-//void handleDebugKey(VM* vm, SDL_Keycode key);
+void handleDebugKey(VM* vm, SDL_Keycode key);
 
 void disassemble(Instruction* instr, char* assembly);
 
-void decode(u16 instr, Instruction* decoded);
+void decode(uint16_t instr, Instruction* decoded);
 
 void exec(VM* vm, Instruction* instr);
 

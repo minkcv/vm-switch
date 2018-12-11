@@ -2,62 +2,35 @@
 
 Display* createDisplay(int width, int height, int scale, int pitch)
 {
-    // Init switch gfx
-    gfxInitResolution(width, height);
-    gfxInitDefault();
-    //gfxConfigureResolution(width, height);
-    //gfxConfigureCrop(0, 0, width, height);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
 
     Display* display = (Display*)malloc(sizeof(Display));
     display->width = width;
     display->height = height;
     display->scale = scale;
     display->pitch = pitch;
-    u32 createdWidth, createdHeight;
-    display->framebuffer = (u32*) gfxGetFramebuffer((u32*)&createdWidth, (u32*)&createdHeight);
-
-    /* TODO
-    u8* title_image = (u8*)title_image_bin;
-    u32 pos;
-    u32 x, y;
-    u32 image_width = scale * width;
-    u32 image_height = scale * height;
-    for (x = 0; x < image_width; x++)
-    {
-        for (y = 0; y < image_height; y++)
-        {
-            pos = y * width + x;
-            display->framebuffer[pos] = RGBA8_MAXALPHA(title_image[pos*3+0], title_image[pos*3+1], title_image[pos*3+2]);
-        }
-    }
+    display->window = SDL_CreateWindow("Vapor Spec", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
+            width * scale, height * scale, SDL_WINDOW_SHOWN);
+    display->surface = SDL_GetWindowSurface(display->window);
+    /* TODO?
+    SDL_Surface* splash = SDL_LoadBMP("title.bmp");
+    SDL_Texture* splashTex = SDL_CreateTextureFromSurface(display->renderer, splash);
+    SDL_RenderCopy(display->renderer, splashTex, NULL, NULL);
+    SDL_RenderPresent(display->renderer);
+    SDL_Delay(2000); // Show splash screen for 2 seconds
     */
-    gfxFlushBuffers();
-    gfxSwapBuffers();
-    
-    // TODO: SDL_Delay(2000); // Show splash screen for 2 seconds
     return display;
 }
 
-void updateDisplay(Display* display, GPU* gpu)
+void updateDisplay(Display* display)
 {
-    u32 pos;
-    u32 x, y;
-    for (x = 0; x < display->width; x++)
-    {
-        for (y = 0; y < display->height; y++)
-        {
-            pos = y * display->width + x;
-            display->framebuffer[pos] = RGBA8_MAXALPHA(gpu->pixels[pos*3+0], gpu->pixels[pos*3+1], gpu->pixels[pos*3+2]);
-        }
-    }
-    gfxFlushBuffers();
-    gfxSwapBuffers();
+    SDL_UpdateWindowSurface(display->window);
 }
 
 void quitDisplay(Display* display)
 {
+    display->window = NULL;
     free(display);
     display = NULL;
-    gfxExit(); // Does this need to happen before free?
+    SDL_Quit();
 }
-

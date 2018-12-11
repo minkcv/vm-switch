@@ -1,17 +1,17 @@
 #include "gpu.h"
 #include <stdlib.h>
 
-GPU* createGPU()
+GPU* createGPU(Display* display)
 {
     GPU* gpu = (GPU*)malloc(sizeof(GPU));
     gpu->active = 1;
     gpu->bytesPerPixel = 3; // From SDL_PIXELFORMAT_RGB24 in display.c
     gpu->pitch = SCREEN_WIDTH * gpu->bytesPerPixel;
-    gpu->pixels = malloc(sizeof(u8) * gpu->bytesPerPixel * SCREEN_WIDTH * SCREEN_HEIGHT);
+    gpu->surface = display->surface;
     return gpu;
 }
 
-void updateGPU(GPU* gpu, u8 memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE])
+void updateGPU(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE])
 {
     gpu->active = memory[GPU_FLAG_SEG][GPU_FLAG_OFFSET] & 0x1;
     if (gpu->active)
@@ -23,12 +23,12 @@ void updateGPU(GPU* gpu, u8 memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE])
     }
 }
 
-void readSpritesFromMem(GPU* gpu, u8 memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE])
+void readSpritesFromMem(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE])
 {
     int i;
     for (i = 0; i < NUM_SPRITES; i++)
     {
-        u8 flags = memory[SPRITE_ATTR_SEG][i * SPRITE_ATTR_LENGTH];
+        uint8_t flags = memory[SPRITE_ATTR_SEG][i * SPRITE_ATTR_LENGTH];
         gpu->sprAttrs[i].active = flags >> 7;
         gpu->sprAttrs[i].flipHor = flags >> 6 & 0x1;
         gpu->sprAttrs[i].flipVer = flags >> 5 & 0x1;
@@ -46,20 +46,15 @@ void readSpritesFromMem(GPU* gpu, u8 memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT
     }
 }
 
-void drawSprites(GPU* gpu, u8 memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE])
+void drawSprites(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE])
 {
     int i;
-    u8* pixels = gpu->pixels;
-    u8 bgColorIndex = memory[BACK_COLOR_SEG][BACK_COLOR_OFFSET];
-    u8 bgRed = getRed(bgColorIndex);
-    u8 bgGreen = getGreen(bgColorIndex);
-    u8 bgBlue = getBlue(bgColorIndex);
-    for (i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT * gpu->bytesPerPixel; i+=gpu->bytesPerPixel)
-    {
-        *(pixels + i) = bgRed;
-        *(pixels + i + 1) = bgGreen;
-        *(pixels + i + 2) = bgBlue;
-    }
+    uint8_t bgColorIndex = memory[BACK_COLOR_SEG][BACK_COLOR_OFFSET];
+    uint8_t bgRed = getRed(bgColorIndex);
+    uint8_t bgGreen = getGreen(bgColorIndex);
+    uint8_t bgBlue = getBlue(bgColorIndex);
+    SDL_FillRect(gpu->surface, NULL, SDL_MapRGB(gpu->surface->format, bgBlue, bgGreen, bgRed));
+    SDL_Rect rect;
     for (i = 0; i < NUM_SPRITES; i++)
     {
         if (gpu->sprAttrs[i].active && 
@@ -73,17 +68,17 @@ void drawSprites(GPU* gpu, u8 memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE])
             int flipVer = gpu->sprAttrs[i].flipVer;
             int width = gpu->sprAttrs[i].width;
             int height = gpu->sprAttrs[i].height;
-            u8* sprite = &memory[gpu->sprAttrs[i].segmentAddr][gpu->sprAttrs[i].byteAddr];
+            uint8_t* sprite = &memory[gpu->sprAttrs[i].segmentAddr][gpu->sprAttrs[i].byteAddr];
             for (h = 0; h < gpu->sprAttrs[i].height; h++)
             {
                 for (w = 0; w < gpu->sprAttrs[i].width / 4; w++)
                 {
-                    u8 fourPixels = 0;
+                    uint8_t fourPixels = 0;
                     if (flipHor == 0 && flipVer == 0)
                         fourPixels = *(sprite + w + (h * width / 4));
                     else if (flipHor == 1 && flipVer == 0)
                     {
-                        u8 fourReversedPixels = *(sprite + (width / 4) - w - 1 + (h * width / 4));
+                        uint8_t fourReversedPixels = *(sprite + (width / 4) - w - 1 + (h * width / 4));
                         fourPixels |= (fourReversedPixels & 0xC0) >> 6;
                         fourPixels |= (fourReversedPixels & 0x30) >> 2;
                         fourPixels |= (fourReversedPixels & 0x0C) << 2;
@@ -95,46 +90,44 @@ void drawSprites(GPU* gpu, u8 memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE])
                     }
                     else if (flipHor == 1 && flipVer == 1)
                     {
-                        u8 fourReversedPixels = *(sprite + (width / 4) - w - 1 + (height * width / 4) - ((h + 1) * width / 4));
+                        uint8_t fourReversedPixels = *(sprite + (width / 4) - w - 1 + (height * width / 4) - ((h + 1) * width / 4));
                         fourPixels |= (fourReversedPixels & 0xC0) >> 6;
                         fourPixels |= (fourReversedPixels & 0x30) >> 2;
                         fourPixels |= (fourReversedPixels & 0x0C) << 2;
                         fourPixels |= (fourReversedPixels & 0x3) << 6;
                     }
                     // Sprite color palette indicies
-                    u8 bits1 = (fourPixels >> 6) & 0x3; // MSB
-                    u8 bits2 = (fourPixels >> 4) & 0x3;
-                    u8 bits3 = (fourPixels >> 2) & 0x3;
-                    u8 bits4 = fourPixels & 0x3;
+                    uint8_t bits1 = (fourPixels >> 6) & 0x3; // MSB
+                    uint8_t bits2 = (fourPixels >> 4) & 0x3;
+                    uint8_t bits3 = (fourPixels >> 2) & 0x3;
+                    uint8_t bits4 = fourPixels & 0x3;
                     // These are full color palette indicies
-                    u8 pixel1 = gpu->sprAttrs[i].colors[bits1];
-                    u8 pixel2 = gpu->sprAttrs[i].colors[bits2];
-                    u8 pixel3 = gpu->sprAttrs[i].colors[bits3];
-                    u8 pixel4 = gpu->sprAttrs[i].colors[bits4];
-                    u8* curPixel = pixels + (x * gpu->bytesPerPixel) + (y * gpu->pitch) + (w * gpu->bytesPerPixel * 4) + (h * gpu->pitch);
+                    uint8_t pixel1 = gpu->sprAttrs[i].colors[bits1];
+                    uint8_t pixel2 = gpu->sprAttrs[i].colors[bits2];
+                    uint8_t pixel3 = gpu->sprAttrs[i].colors[bits3];
+                    uint8_t pixel4 = gpu->sprAttrs[i].colors[bits4];
+                    rect.x = x;
+                    rect.y = y;
+                    rect.w = w;
+                    rect.h = h;
                     if (!(gpu->sprAttrs[i].color4Alpha && bits1 == 0x3))
                     {
-                        *curPixel = getRed(pixel1);
-                        *(curPixel + 1) = getGreen(pixel1);
-                        *(curPixel + 2) = getBlue(pixel1);
+                        SDL_FillRect(gpu->surface, &rect, SDL_MapRGB(gpu->surface->format, getRed(pixel1), getGreen(pixel1), getBlue(pixel1)));
                     }
                     if (!(gpu->sprAttrs[i].color4Alpha && bits2 == 0x3))
                     {
-                        *(curPixel + 3) = getRed(pixel2);
-                        *(curPixel + 4) = getGreen(pixel2);
-                        *(curPixel + 5) = getBlue(pixel2);
+                        rect.x = x + 1;
+                        SDL_FillRect(gpu->surface, &rect, SDL_MapRGB(gpu->surface->format, getRed(pixel2), getGreen(pixel2), getBlue(pixel2)));
                     }
                     if (!(gpu->sprAttrs[i].color4Alpha && bits3 == 0x3))
                     {
-                        *(curPixel + 6) = getRed(pixel3);
-                        *(curPixel + 7) = getGreen(pixel3);
-                        *(curPixel + 8) = getBlue(pixel3);
+                        rect.x = x + 2;
+                        SDL_FillRect(gpu->surface, &rect, SDL_MapRGB(gpu->surface->format, getRed(pixel3), getGreen(pixel3), getBlue(pixel3)));
                     }
                     if (!(gpu->sprAttrs[i].color4Alpha && bits4 == 0x3))
                     {
-                        *(curPixel + 9) = getRed(pixel4);
-                        *(curPixel + 10) = getGreen(pixel4);
-                        *(curPixel + 11) = getBlue(pixel4);
+                        rect.x = x + 3;
+                        SDL_FillRect(gpu->surface, &rect, SDL_MapRGB(gpu->surface->format, getRed(pixel4), getGreen(pixel4), getBlue(pixel4)));
                     }
                 }
             }
@@ -142,17 +135,17 @@ void drawSprites(GPU* gpu, u8 memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE])
     }
 }
 
-u8 getRed(u8 paletteIndex)
+uint8_t getRed(uint8_t paletteIndex)
 {
     return (paletteIndex / 32) * 36;
 }
 
-u8 getGreen(u8 paletteIndex)
+uint8_t getGreen(uint8_t paletteIndex)
 {
     return (paletteIndex % 32) / 4 * 36;
 }
 
-u8 getBlue(u8 paletteIndex)
+uint8_t getBlue(uint8_t paletteIndex)
 {
     return (paletteIndex % 4) * 85;
 }

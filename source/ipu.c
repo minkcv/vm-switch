@@ -20,16 +20,6 @@ IPU* createIPU()
 {
     IPU* ipu = (IPU*)malloc(sizeof(IPU));
     JOYSTICK* js1 = (JOYSTICK*)malloc(sizeof(JOYSTICK));
-<<<<<<< HEAD
-    js1->buttons[0] = KEY_RSTICK_UP;
-    js1->buttons[1] = KEY_RSTICK_DOWN;
-    js1->buttons[2] = KEY_RSTICK_LEFT;
-    js1->buttons[3] = KEY_RSTICK_RIGHT;
-    js1->buttons[4] = KEY_A;
-    js1->buttons[5] = KEY_B;
-    js1->buttons[6] = KEY_X;
-    js1->buttons[7] = KEY_Y;
-=======
     js1->buttons[0] = 21;
     js1->buttons[1] = 23;
     js1->buttons[2] = 20;
@@ -38,7 +28,6 @@ IPU* createIPU()
     js1->buttons[5] = 1; // B
     js1->buttons[6] = 2; // X
     js1->buttons[7] = 3; // Y
->>>>>>> 4255dab10469ad0e24d5d862864e6faaf3042320
     js1->keysAsBits = 0;
     if (SDL_NumJoysticks() >= 1)
         js1->sdlJoystick = SDL_JoystickOpen(0);
@@ -48,17 +37,6 @@ IPU* createIPU()
     ipu->js1 = js1;
 
     JOYSTICK* js2 = (JOYSTICK*)malloc(sizeof(JOYSTICK));
-<<<<<<< HEAD
-    
-    js2->buttons[0] = KEY_LSTICK_UP;
-    js2->buttons[1] = KEY_LSTICK_DOWN;
-    js2->buttons[2] = KEY_LSTICK_LEFT;
-    js2->buttons[3] = KEY_LSTICK_RIGHT;
-    js2->buttons[4] = KEY_DUP;
-    js2->buttons[5] = KEY_DDOWN;
-    js2->buttons[6] = KEY_DRIGHT;
-    js2->buttons[7] = KEY_DLEFT;
-=======
     js2->buttons[0] = 17;
     js2->buttons[1] = 19;
     js2->buttons[2] = 16;
@@ -67,7 +45,6 @@ IPU* createIPU()
     js2->buttons[5] = 13; // Up
     js2->buttons[6] = 14; // Right
     js2->buttons[7] = 15; // Down
->>>>>>> 4255dab10469ad0e24d5d862864e6faaf3042320
     js2->keysAsBits = 0;
     // Only call SDL_JoystickOpen ONCE when joycons are railed.
     js2->sdlJoystick = (js1->sdlJoystick);

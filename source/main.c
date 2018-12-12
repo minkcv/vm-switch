@@ -30,19 +30,24 @@ void printGameList(int cursorPos, int numGames, GameData gameData[256])
     int startRow = 3;
     for (i = 0; i < numGames; i++)
     {
-        printf("\x1b[%d;0H%s - %s - %s", i + startRow, gameData[i].name, gameData[i].codeName, gameData[i].romName);
+        if (i == cursorPos)
+            printf("\x1b[%d;0H> %s - %s - %s", i + startRow, gameData[i].name, gameData[i].codeName, gameData[i].romName);
+        else
+            printf("\x1b[%d;0H  %s - %s - %s", i + startRow, gameData[i].name, gameData[i].codeName, gameData[i].romName);
     }
 }
 
-void gameMenu(uint16_t** code, uint8_t** rom)
+int gameMenu(uint16_t** code, uint8_t** rom)
 {
     consoleInit(NULL);
     GameData gameData[256];
     FILE* gameList = fopen("vaporspec/gamelist.txt", "r");
     if (gameList == NULL)
     {
+        printf("\x1b[0;0HMissing vaporspec/gamelist.txt");
+        consoleUpdate(NULL);
         consoleExit(NULL);
-        return;
+        return 0;
     }
     fseek(gameList, 0, SEEK_END);
     size_t size = ftell(gameList);
@@ -66,10 +71,29 @@ void gameMenu(uint16_t** code, uint8_t** rom)
     int cursorPos = 0;
     while(1)
     {
+        printf("\x1b[0;0HSelect game with up/down. Start with A. Quit with +.");
         printGameList(cursorPos, numGames, gameData);
         hidScanInput();
         uint64_t kDown = hidKeysDown(CONTROLLER_P1_AUTO);
-        if (kDown & KEY_PLUS) break;
+        if (kDown & KEY_PLUS)
+            return 1; // QUIT
+        
+        if (kDown & KEY_DUP || kDown & KEY_LSTICK_UP)
+        {
+            if (cursorPos > 0 )
+                cursorPos--;
+            else
+                cursorPos = numGames - 1;
+        }
+        if (kDown & KEY_DDOWN || kDown & KEY_LSTICK_DOWN)
+        {
+            if (cursorPos == numGames - 1)
+                cursorPos = 0;
+            else
+                cursorPos++;
+        }
+        if (kDown & KEY_A)
+            break;
         consoleUpdate(NULL);
     }
     GameData selected = gameData[cursorPos];
@@ -80,6 +104,7 @@ void gameMenu(uint16_t** code, uint8_t** rom)
     fclose(gameList);
     free(contents);
     consoleExit(NULL);
+    return 0;
 }
 
 int main (int argc, char** argv)
@@ -89,7 +114,9 @@ int main (int argc, char** argv)
         uint16_t* code = NULL;
         uint8_t* rom = NULL;
 
-        gameMenu(&code, &rom);
+        int quit = gameMenu(&code, &rom);
+        if (quit)
+            break;
         if (code == NULL)
             continue;
 

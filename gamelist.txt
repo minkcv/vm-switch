@@ -1,0 +1,2 @@
+pong;vaporspec/pong.bin;;
+mars;vaporspec/mars.bin;vaporspec/mars.rom;

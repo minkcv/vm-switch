@@ -34,7 +34,7 @@ void printGameList(int cursorPos, int numGames, GameData gameData[256])
     }
 }
 
-void gameMenu(uint16_t* code, uint8_t* rom)
+void gameMenu(uint16_t** code, uint8_t** rom)
 {
     consoleInit(NULL);
     GameData gameData[256];
@@ -53,9 +53,9 @@ void gameMenu(uint16_t* code, uint8_t* rom)
     char* line = strtok(contents, "\n");
     while (line != NULL)
     {
-        char* name = strsep(&line, " ");
-        char* codeName = strsep(&line, " ");
-        char* romName = strsep(&line, ",");
+        char* name = strsep(&line, ";");
+        char* codeName = strsep(&line, ";");
+        char* romName = strsep(&line, ";");
         gameData[numGames].name = name;
         gameData[numGames].codeName = codeName;
         gameData[numGames].romName = romName;
@@ -73,10 +73,12 @@ void gameMenu(uint16_t* code, uint8_t* rom)
         consoleUpdate(NULL);
     }
     GameData selected = gameData[cursorPos];
-    code = readBinary(selected.codeName, 1);
-    if (strlen(selected.romName) > 0)
-        rom = readRom(selected.romName, 1);
-        
+    (*code) = readBinary(selected.codeName, 0);
+    if (!strcmp(selected.romName, "\0") && strlen(selected.romName) > 0)
+        (*rom) = readRom(selected.romName, 1);
+
+    fclose(gameList);
+    free(contents);
     consoleExit(NULL);
 }
 
@@ -87,9 +89,9 @@ int main (int argc, char** argv)
         uint16_t* code = NULL;
         uint8_t* rom = NULL;
 
-        gameMenu(code, rom);
+        gameMenu(&code, &rom);
         if (code == NULL)
-            break;
+            continue;
 
         int scale = 1;
         int debugMode = 0;
@@ -100,6 +102,8 @@ int main (int argc, char** argv)
         if (rom != NULL)
             free(rom);
         rom = NULL;
+        free(code);
+        
     }
     return 0;
 }
@@ -109,21 +113,25 @@ uint16_t* readBinary(const char* filename, int print)
     FILE* bin = fopen(filename, "rb");
     if (bin == NULL)
     {
-        printf("Error reading file %s\n", filename);
+        printf("\x1b[0;0HError reading file %s\n", filename);
+        consoleUpdate(NULL);
         return NULL;
     }
     size_t numInstructions = 0;
     // binaries are length prefixed
     fread(&numInstructions, sizeof(uint16_t), 1, bin);
-    printf("Binary is %zd instructions\n", numInstructions);
+    printf("\x1b[0;0HBinary is %zd instructions\n", numInstructions);
+    consoleUpdate(NULL);
     uint16_t* code = malloc(sizeof(uint16_t) * numInstructions);
     fread(code, sizeof(uint16_t), numInstructions, bin);
     if (print)
     {
-        printf("Binary Program:\n");
         int i;
         for (i = 0; i < numInstructions; i++)
-            printf("%4X\n", code[i]);
+        {
+            printf("\x1b[%d;0H%4X\n", i, code[i]);
+            consoleUpdate(NULL);
+        }
     }
     fclose(bin);
     return code;
@@ -134,19 +142,23 @@ uint8_t* readRom(const char* filename, int print)
     FILE* romfile = fopen(filename, "rb");
     if (romfile == NULL)
     {
-        printf("Error reading file %s\n", filename);
+        printf("\x1b[0;0HError reading file %s\n", filename);
+        consoleUpdate(NULL);
         return NULL;
     }
     uint8_t* rom = malloc(sizeof(uint8_t) * 128 * MEMORY_SEGMENT_SIZE);
     memset(rom, 0, sizeof(uint8_t) * 128 * MEMORY_SEGMENT_SIZE);
     size_t bytesRead = fread(rom, sizeof(uint8_t), 128 * MEMORY_SEGMENT_SIZE, romfile);
-    printf("Read %zd bytes from the rom\n", bytesRead);
+    printf("\x1b[0;0HRead %zd bytes from the rom\n", bytesRead);
+    consoleUpdate(NULL);
     if (print)
     {
-        printf("Rom:\n");
         int i;
         for (i = 0; i < bytesRead; i++)
-            printf("%2X\n", rom[i]);
+        {
+            printf("\x1b[%d;0H%2X\n", i, rom[i]);
+            consoleUpdate(NULL);
+        }
     }
     fclose(romfile);
     return rom;

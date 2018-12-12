@@ -31,9 +31,9 @@ void printGameList(int cursorPos, int numGames, GameData gameData[256])
     for (i = 0; i < numGames; i++)
     {
         if (i == cursorPos)
-            printf("\x1b[%d;0H> %s - %s - %s", i + startRow, gameData[i].name, gameData[i].codeName, gameData[i].romName);
+            printf("\x1b[%d;0H> %s - %s  %s", i + startRow, gameData[i].name, gameData[i].codeName, gameData[i].romName);
         else
-            printf("\x1b[%d;0H  %s - %s - %s", i + startRow, gameData[i].name, gameData[i].codeName, gameData[i].romName);
+            printf("\x1b[%d;0H  %s - %s  %s", i + startRow, gameData[i].name, gameData[i].codeName, gameData[i].romName);
     }
 }
 
@@ -41,10 +41,10 @@ int gameMenu(uint16_t** code, uint8_t** rom)
 {
     consoleInit(NULL);
     GameData gameData[256];
-    FILE* gameList = fopen("vaporspec/gamelist.txt", "r");
+    FILE* gameList = fopen("switch/vaporspec/gamelist.txt", "r");
     if (gameList == NULL)
     {
-        printf("\x1b[0;0HMissing vaporspec/gamelist.txt");
+        printf("\x1b[0;0HMissing switch/vaporspec/gamelist.txt");
         consoleUpdate(NULL);
         consoleExit(NULL);
         return 0;
@@ -136,11 +136,16 @@ int main (int argc, char** argv)
 
 uint16_t* readBinary(const char* filename, int print)
 {
-    FILE* bin = fopen(filename, "rb");
+    char* folder = "switch/vaporlang/";
+    char* path = malloc(sizeof(char) * (strlen(folder) + strlen(filename)) + 1);
+    strcat(path, folder);
+    strcat(path, filename);
+    FILE* bin = fopen(path, "rb");
     if (bin == NULL)
     {
         printf("\x1b[0;0HError reading file %s\n", filename);
         consoleUpdate(NULL);
+        free(path);
         return NULL;
     }
     size_t numInstructions = 0;
@@ -160,16 +165,22 @@ uint16_t* readBinary(const char* filename, int print)
         }
     }
     fclose(bin);
+    free(path);
     return code;
 }
 
 uint8_t* readRom(const char* filename, int print)
 {
-    FILE* romfile = fopen(filename, "rb");
+    char* folder = "switch/vaporlang/";
+    char* path = malloc(sizeof(char) * (strlen(folder) + strlen(filename)) + 1);
+    strcat(path, folder);
+    strcat(path, filename);
+    FILE* romfile = fopen(path, "rb");
     if (romfile == NULL)
     {
         printf("\x1b[0;0HError reading file %s\n", filename);
         consoleUpdate(NULL);
+        free(path);
         return NULL;
     }
     uint8_t* rom = malloc(sizeof(uint8_t) * 128 * MEMORY_SEGMENT_SIZE);
@@ -187,5 +198,6 @@ uint8_t* readRom(const char* filename, int print)
         }
     }
     fclose(romfile);
+    free(path);
     return rom;
 }

@@ -11,6 +11,11 @@ GPU* createGPU(Display* display)
     return gpu;
 }
 
+void destroyGPU(GPU* gpu)
+{
+    free(gpu);
+}
+
 void updateGPU(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE])
 {
     gpu->active = memory[GPU_FLAG_SEG][GPU_FLAG_OFFSET] & 0x1;

@@ -24,6 +24,16 @@ VM* createVM(uint16_t* code, uint8_t* rom, Display* display, int debugMode)
     return vm;
 }
 
+void destroyVM(VM* vm)
+{
+    destroyGPU(vm->gpu);
+    vm->gpu = NULL;
+    destroyIPU(vm->ipu);
+    vm->ipu = NULL;
+    free(vm);
+    vm = NULL;
+}
+
 // Starts the fetch, decode, execute cycle
 // of a vm from the start of its code
 void run(VM* vm)
@@ -103,14 +113,6 @@ void run(VM* vm)
             vm->breakState = 1;
     }
     free(decoded);
-
-    // Really ought to be in a ipu destory function.
-    if (SDL_JoystickGetAttached(0))
-        SDL_JoystickClose(0);
-
-    free(vm->ipu->js1);
-    free(vm->ipu->js2);
-    free(vm->ipu);
 }
 
 void handleDebugKey(VM* vm, SDL_Keycode key)

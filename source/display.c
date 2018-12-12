@@ -29,6 +29,7 @@ void updateDisplay(Display* display)
 
 void quitDisplay(Display* display)
 {
+    SDL_FreeSurface(display->surface);
     display->window = NULL;
     free(display);
     display = NULL;

@@ -103,7 +103,6 @@ int main (int argc, char** argv)
             free(rom);
         rom = NULL;
         free(code);
-        
     }
     return 0;
 }

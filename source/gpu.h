@@ -42,6 +42,8 @@ struct GPU
 
 GPU* createGPU(Display* display);
 
+void destroyGPU(GPU* gpu);
+
 void updateGPU(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE]);
 
 void readSpritesFromMem(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE]);

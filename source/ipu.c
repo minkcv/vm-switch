@@ -1,7 +1,7 @@
 #include "ipu.h"
 
 /* From devkitPro sdl fork, is this what the controlls are doing?
-    Not even reading analog values on the joysticks?
+    Looks like they are just using the key constants from libnx instead of the SDL key or joystick constants.
     I suppose that the switch is a proprietary platform so I'm happy with what I have.
 static const HidControllerKeys pad_mapping[] = {
     KEY_A, KEY_B, KEY_X, KEY_Y, // 0, 1, 2, 3
@@ -48,10 +48,19 @@ IPU* createIPU()
     js2->keysAsBits = 0;
     // Only call SDL_JoystickOpen ONCE when joycons are railed.
     js2->sdlJoystick = (js1->sdlJoystick);
-    js2->which = 1;
     ipu->js2 = js2;
 
     return ipu;
+}
+
+void destroyIPU(IPU* ipu)
+{
+    if (SDL_JoystickGetAttached(0))
+        SDL_JoystickClose(0);
+    free(ipu->js1);
+    ipu->js1 = NULL;
+    free(ipu->js2);
+    ipu->js2 = NULL;
 }
 
 void updateIPU(IPU* ipu, SDL_Event event, 

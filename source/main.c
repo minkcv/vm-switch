@@ -41,13 +41,14 @@ int gameMenu(uint16_t** code, uint8_t** rom)
 {
     consoleInit(NULL);
     GameData gameData[256];
-    FILE* gameList = fopen("switch/vaporspec/gamelist.txt", "r");
+    FILE* gameList = fopen("vaporspec/gamelist.txt", "r");
     if (gameList == NULL)
     {
-        printf("\x1b[0;0HMissing switch/vaporspec/gamelist.txt");
+        printf("\x1b[0;0HMissing vaporspec/gamelist.txt");
         consoleUpdate(NULL);
+        sleep(2);
         consoleExit(NULL);
-        return 0;
+        return 1; // QUIT
     }
     fseek(gameList, 0, SEEK_END);
     size_t size = ftell(gameList);
@@ -76,7 +77,12 @@ int gameMenu(uint16_t** code, uint8_t** rom)
         hidScanInput();
         uint64_t kDown = hidKeysDown(CONTROLLER_P1_AUTO);
         if (kDown & KEY_PLUS)
+        {
+            fclose(gameList);
+            free(contents);
+            consoleExit(NULL);
             return 1; // QUIT
+        }
         
         if (kDown & KEY_DUP || kDown & KEY_LSTICK_UP)
         {
@@ -99,7 +105,7 @@ int gameMenu(uint16_t** code, uint8_t** rom)
     GameData selected = gameData[cursorPos];
     (*code) = readBinary(selected.codeName, 0);
     if (!strcmp(selected.romName, "\0") && strlen(selected.romName) > 0)
-        (*rom) = readRom(selected.romName, 1);
+        (*rom) = readRom(selected.romName, 0);
 
     fclose(gameList);
     free(contents);
@@ -136,7 +142,7 @@ int main (int argc, char** argv)
 
 uint16_t* readBinary(const char* filename, int print)
 {
-    char* folder = "switch/vaporlang/";
+    char* folder = "vaporspec/";
     char* path = malloc(sizeof(char) * (strlen(folder) + strlen(filename)) + 1);
     strcat(path, folder);
     strcat(path, filename);
@@ -171,7 +177,7 @@ uint16_t* readBinary(const char* filename, int print)
 
 uint8_t* readRom(const char* filename, int print)
 {
-    char* folder = "switch/vaporlang/";
+    char* folder = "vaporspec/";
     char* path = malloc(sizeof(char) * (strlen(folder) + strlen(filename)) + 1);
     strcat(path, folder);
     strcat(path, filename);

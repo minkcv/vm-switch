@@ -143,14 +143,16 @@ int main (int argc, char** argv)
 uint16_t* readBinary(const char* filename, int print)
 {
     char* folder = "vaporspec/";
-    char* path = malloc(sizeof(char) * (strlen(folder) + strlen(filename)) + 1);
+    char* path = malloc((strlen(folder) + strlen(filename)) + 1);
+    path[0] = '\0';
     strcat(path, folder);
     strcat(path, filename);
     FILE* bin = fopen(path, "rb");
     if (bin == NULL)
     {
-        printf("\x1b[0;0HError reading file %s\n", filename);
+        printf("\x1b[0;0HError reading file %s\n", path);
         consoleUpdate(NULL);
+        sleep(2);
         free(path);
         return NULL;
     }
@@ -178,14 +180,16 @@ uint16_t* readBinary(const char* filename, int print)
 uint8_t* readRom(const char* filename, int print)
 {
     char* folder = "vaporspec/";
-    char* path = malloc(sizeof(char) * (strlen(folder) + strlen(filename)) + 1);
+    char* path = malloc((strlen(folder) + strlen(filename)) + 1);
+    path[0] = '\0';
     strcat(path, folder);
     strcat(path, filename);
     FILE* romfile = fopen(path, "rb");
     if (romfile == NULL)
     {
-        printf("\x1b[0;0HError reading file %s\n", filename);
+        printf("\x1b[0;0HError reading file %s\n", path);
         consoleUpdate(NULL);
+        sleep(2);
         free(path);
         return NULL;
     }

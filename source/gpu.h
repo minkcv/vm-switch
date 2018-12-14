@@ -38,6 +38,7 @@ struct GPU
     int bytesPerPixel;
     unsigned int active : 1;
     unsigned int refreshed : 1; // Changes 0 -> 1 or 1 -> 0 when the display refreshes
+    int scale;
 };
 
 GPU* createGPU(Display* display);

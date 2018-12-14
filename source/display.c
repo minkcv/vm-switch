@@ -9,8 +9,8 @@ Display* createDisplay(int width, int height, int scale, int pitch)
     display->height = height;
     display->scale = scale;
     display->pitch = pitch;
-    display->window = SDL_CreateWindow("Vapor Spec", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
-            width * scale, height * scale, SDL_WINDOW_SHOWN);
+    display->window = SDL_CreateWindow("Vapor Spec", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
+            0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP); // Fullscreen 720p
     display->surface = SDL_GetWindowSurface(display->window);
     /* TODO?
     SDL_Surface* splash = SDL_LoadBMP("title.bmp");

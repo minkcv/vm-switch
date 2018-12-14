@@ -59,7 +59,7 @@ void drawSprites(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_S
     uint8_t bgRed = getRed(bgColorIndex);
     uint8_t bgGreen = getGreen(bgColorIndex);
     uint8_t bgBlue = getBlue(bgColorIndex);
-    SDL_FillRect(gpu->surface, NULL, SDL_MapRGB(gpu->surface->format, bgBlue, bgGreen, bgRed));
+    SDL_FillRect(gpu->surface, NULL, SDL_MapRGB(gpu->surface->format, bgRed, bgGreen, bgBlue));
     SDL_Rect rect;
     for (i = 0; i < NUM_SPRITES; i++)
     {

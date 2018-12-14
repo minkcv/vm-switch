@@ -40,7 +40,7 @@ EXEFS_SRC	:=	exefs_src
 
 APP_AUTHOR	:=	Will Smith
 APP_TITLE	:=	Vapor Spec VM
-APP_VERSION	:=	0.2.0
+APP_VERSION	:=	0.3.0
 
 #---------------------------------------------------------------------------------
 # options for code generation

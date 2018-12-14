@@ -27,7 +27,7 @@ struct GameData
 void printGameList(int cursorPos, int numGames, GameData gameData[256])
 {
     int i;
-    int startRow = 3;
+    int startRow = 5;
     for (i = 0; i < numGames; i++)
     {
         if (i == cursorPos)
@@ -37,7 +37,7 @@ void printGameList(int cursorPos, int numGames, GameData gameData[256])
     }
 }
 
-int gameMenu(uint16_t** code, uint8_t** rom)
+int gameMenu(uint16_t** code, uint8_t** rom, int* scale)
 {
     consoleInit(NULL);
     GameData gameData[256];
@@ -73,6 +73,7 @@ int gameMenu(uint16_t** code, uint8_t** rom)
     while(1)
     {
         printf("\x1b[0;0HSelect game with up/down. Start with A. Quit with +.");
+        printf("\x1b[2;0HChange scale with X / Y. Scale: %d", *scale);
         printGameList(cursorPos, numGames, gameData);
         hidScanInput();
         uint64_t kDown = hidKeysDown(CONTROLLER_P1_AUTO);
@@ -100,6 +101,11 @@ int gameMenu(uint16_t** code, uint8_t** rom)
         }
         if (kDown & KEY_A)
             break;
+        if ((kDown & KEY_X) && *scale < 3)
+            (*scale)++;
+        if ((kDown & KEY_Y) && *scale > 1)
+            (*scale)--;
+
         consoleUpdate(NULL);
     }
     GameData selected = gameData[cursorPos];
@@ -115,18 +121,12 @@ int gameMenu(uint16_t** code, uint8_t** rom)
 
 int main (int argc, char** argv)
 {
-    while (appletMainLoop())
+    uint16_t* code = NULL;
+    uint8_t* rom = NULL;
+    int scale = 1;
+    int quit = gameMenu(&code, &rom, &scale);
+    if (!quit && code != NULL)
     {
-        uint16_t* code = NULL;
-        uint8_t* rom = NULL;
-
-        int quit = gameMenu(&code, &rom);
-        if (quit)
-            break;
-        if (code == NULL)
-            continue;
-
-        int scale = 1;
         int debugMode = 0;
         Display* display = createDisplay(SCREEN_WIDTH, SCREEN_HEIGHT, scale, SCREEN_WIDTH / 4);
         VM* vm = createVM(code, rom, display, debugMode);

@@ -1,10 +1,12 @@
-# Vapor Spec VM for Nintendo Switch
+# Vapor Spec for Nintendo Switch
 
 An implementation of [Vapor Spec](https://github.com/minkcv/vm) for Nintendo Switch Homebrew.
 
-Do you want to develop games for Windows, Linux, and Nintendo Switch Homebrew without having to make any changes to the game code at all? This is the place for you!
+Vapor Spec is a virtual game platform. You can develop games for Vapor Spec on Windows or Linux and the games can be run on the Nintendo Switch without any modifications.
 
-## Building the nro for the Switch
+## Building the Vapor Spec platform for the Switch
+You can skip this and go to the section below if you just want to run games.
+
 See the [devkitPro Getting Started page](https://devkitpro.org/wiki/Getting_Started).
 
 Install dependencies
@@ -18,20 +20,21 @@ then, after cloning this repo,
 
 Should produce `vm-switch.nro` for switch homebrew.
 
-## Running on the Switch
-Put the vm-switch.nro in the switch folder on your SD card.
+## Running Vapor Spec on the Switch
+See the [Releases Section](https://github.com/minkcv/vm-switch/releases) to download all the necessary files.
 
-Then put your Vapor Spec games in a folder called `vaporspec` in the `switch` folder on your SD card.
+Put the `vm-switch.nro` and the `vaporspec` folder in the `switch` folder on your SD card.
 
-Make `gamelist.txt` in the vaporspec folder. The SD card should now look like this
+The SD card should now look like this:
 
     switch/
         vm-switch.nro
         vaporspec/
             gamelist.txt
             pong.bin
+            (other game files)
 
-In the `gamelist.txt` file make a line with the following items separated by semicolons.
+You can add other games by adding a line in `gamelist.txt` with the following items separated by semicolons.
 
 - The name of the game
 - The filename of the game binary
@@ -39,8 +42,8 @@ In the `gamelist.txt` file make a line with the following items separated by sem
 
 Example `gamelist.txt` (note the last semicolon is still required even when no rom is used):
 
-    pong by Will Smith;pong.bin;;
-    mars by Will Smith;mars.bin;mars.rom;
-    tetris by Will Smith;tetris.bin;;
+    pong;pong.bin;;
+    mars;mars.bin;mars.rom;
+    tetris;tetris.bin;;
 
 I AM NOT RESPONSIBLE FOR DAMAGE OR DATA LOSS ON YOUR NINTENDO SWITCH

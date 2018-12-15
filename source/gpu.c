@@ -9,6 +9,8 @@ GPU* createGPU(Display* display)
     gpu->pitch = SCREEN_WIDTH * gpu->bytesPerPixel;
     gpu->surface = display->surface;
     gpu->scale = display->scale;
+    gpu->leftMargin = (1280 / 2) - ((SCREEN_WIDTH * gpu->scale) / 2);
+    gpu->topMargin = (720 / 2) - ((SCREEN_HEIGHT * gpu->scale) / 2);
     return gpu;
 }
 
@@ -112,8 +114,8 @@ void drawSprites(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_S
                     uint8_t pixel2 = gpu->sprAttrs[i].colors[bits2];
                     uint8_t pixel3 = gpu->sprAttrs[i].colors[bits3];
                     uint8_t pixel4 = gpu->sprAttrs[i].colors[bits4];
-                    rect.x = (x * gpu->scale) + (w * gpu->scale * 4);
-                    rect.y = (y * gpu->scale) + (h * gpu->scale);
+                    rect.x = gpu->leftMargin + (x * gpu->scale) + (w * gpu->scale * 4);
+                    rect.y = gpu->topMargin + (y * gpu->scale) + (h * gpu->scale);
                     rect.w = gpu->scale; // scale = 1 pixel
                     rect.h = gpu->scale; // scale = 1 pixel
                     if (!(gpu->sprAttrs[i].color4Alpha && bits1 == 0x3))
@@ -122,17 +124,17 @@ void drawSprites(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_S
                     }
                     if (!(gpu->sprAttrs[i].color4Alpha && bits2 == 0x3))
                     {
-                        rect.x = (x * gpu->scale) + (w * gpu->scale * 4) + (1 * gpu->scale);
+                        rect.x = gpu->leftMargin + (x * gpu->scale) + (w * gpu->scale * 4) + (1 * gpu->scale);
                         SDL_FillRect(gpu->surface, &rect, SDL_MapRGB(gpu->surface->format, getRed(pixel2), getGreen(pixel2), getBlue(pixel2)));
                     }
                     if (!(gpu->sprAttrs[i].color4Alpha && bits3 == 0x3))
                     {
-                        rect.x = (x * gpu->scale) + (w * gpu->scale * 4) + (2 * gpu->scale);
+                        rect.x = gpu->leftMargin + (x * gpu->scale) + (w * gpu->scale * 4) + (2 * gpu->scale);
                         SDL_FillRect(gpu->surface, &rect, SDL_MapRGB(gpu->surface->format, getRed(pixel3), getGreen(pixel3), getBlue(pixel3)));
                     }
                     if (!(gpu->sprAttrs[i].color4Alpha && bits4 == 0x3))
                     {
-                        rect.x = (x * gpu->scale) + (w * gpu->scale * 4) + (3 * gpu->scale);
+                        rect.x = gpu->leftMargin + (x * gpu->scale) + (w * gpu->scale * 4) + (3 * gpu->scale);
                         SDL_FillRect(gpu->surface, &rect, SDL_MapRGB(gpu->surface->format, getRed(pixel4), getGreen(pixel4), getBlue(pixel4)));
                     }
                 }

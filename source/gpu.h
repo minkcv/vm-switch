@@ -39,6 +39,8 @@ struct GPU
     unsigned int active : 1;
     unsigned int refreshed : 1; // Changes 0 -> 1 or 1 -> 0 when the display refreshes
     int scale;
+    int leftMargin;
+    int topMargin;
 };
 
 GPU* createGPU(Display* display);

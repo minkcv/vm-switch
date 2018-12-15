@@ -110,7 +110,7 @@ int gameMenu(uint16_t** code, uint8_t** rom, int* scale)
     }
     GameData selected = gameData[cursorPos];
     (*code) = readBinary(selected.codeName, 0);
-    if (!strcmp(selected.romName, "\0") && strlen(selected.romName) > 0)
+    if ((*selected.romName) != '\0' && strlen(selected.romName) > 0)
         (*rom) = readRom(selected.romName, 0);
 
     fclose(gameList);
@@ -195,7 +195,10 @@ uint8_t* readRom(const char* filename, int print)
     }
     uint8_t* rom = malloc(sizeof(uint8_t) * 128 * MEMORY_SEGMENT_SIZE);
     memset(rom, 0, sizeof(uint8_t) * 128 * MEMORY_SEGMENT_SIZE);
-    size_t bytesRead = fread(rom, sizeof(uint8_t), 128 * MEMORY_SEGMENT_SIZE, romfile);
+    fseek(romfile, 0, SEEK_END);
+    size_t size = ftell(romfile);
+    fseek(romfile, 0, SEEK_SET);
+    size_t bytesRead = fread(rom, sizeof(uint8_t), size, romfile);
     printf("\x1b[0;0HRead %zd bytes from the rom\n", bytesRead);
     consoleUpdate(NULL);
     if (print)

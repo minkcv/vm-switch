@@ -72,7 +72,9 @@ int gameMenu(uint16_t** code, uint8_t** rom)
     int cursorPos = 0;
     while(1)
     {
-        printf("\x1b[0;0HSelect game with up/down. Start with A. Quit with +.");
+        printf("\x1b[0;0HVapor Spec Virtual Game Platform by Will Smith (minkcv)");
+        printf("\x1b[2;0HSelect game with up/down. Start with A. Quit with +.");
+        printf("\x1b[3;0HMore info at github.com/minkcv/vm");
         printGameList(cursorPos, numGames, gameData);
         hidScanInput();
         uint64_t kDown = hidKeysDown(CONTROLLER_P1_AUTO);

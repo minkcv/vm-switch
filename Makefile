@@ -39,8 +39,8 @@ EXEFS_SRC	:=	exefs_src
 #ROMFS	:=	romfs
 
 APP_AUTHOR	:=	Will Smith
-APP_TITLE	:=	Vapor Spec VM
-APP_VERSION	:=	0.3.0
+APP_TITLE	:=	Vapor Spec
+APP_VERSION	:=	0.4.0
 
 #---------------------------------------------------------------------------------
 # options for code generation

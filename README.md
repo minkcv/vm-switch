@@ -2,7 +2,7 @@
 
 An implementation of [Vapor Spec](https://github.com/minkcv/vm) for Nintendo Switch Homebrew.
 
-Vapor Spec is a virtual game platform. You can develop games for Vapor Spec on Windows or Linux and the games can be run on the Nintendo Switch without any modifications.
+Vapor Spec is a virtual game platform. You can develop games for Vapor Spec on a desktop and the games can be run on Windows, Linux, and the Nintendo Switch.
 
 ## Building the Vapor Spec platform for the Switch
 You can skip this and go to the section below if you just want to run games.

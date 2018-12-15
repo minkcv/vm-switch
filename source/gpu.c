@@ -11,6 +11,7 @@ GPU* createGPU(Display* display)
     gpu->scale = display->scale;
     gpu->leftMargin = (1280 / 2) - ((SCREEN_WIDTH * gpu->scale) / 2);
     gpu->topMargin = (720 / 2) - ((SCREEN_HEIGHT * gpu->scale) / 2);
+    SDL_FillRect(gpu->surface, NULL, SDL_MapRGB(gpu->surface->format, 0, 0, 0));
     return gpu;
 }
 
@@ -61,8 +62,12 @@ void drawSprites(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_S
     uint8_t bgRed = getRed(bgColorIndex);
     uint8_t bgGreen = getGreen(bgColorIndex);
     uint8_t bgBlue = getBlue(bgColorIndex);
-    SDL_FillRect(gpu->surface, NULL, SDL_MapRGB(gpu->surface->format, bgRed, bgGreen, bgBlue));
     SDL_Rect rect;
+    rect.x = gpu->leftMargin;
+    rect.y = gpu->topMargin;
+    rect.w = SCREEN_WIDTH * gpu->scale;
+    rect.h = SCREEN_HEIGHT * gpu->scale;
+    SDL_FillRect(gpu->surface, &rect, SDL_MapRGB(gpu->surface->format, bgRed, bgGreen, bgBlue));
     for (i = 0; i < NUM_SPRITES; i++)
     {
         if (gpu->sprAttrs[i].active && 

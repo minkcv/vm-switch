@@ -36,11 +36,12 @@ SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
 EXEFS_SRC	:=	exefs_src
+ICON		:=	icon.jpg
 #ROMFS	:=	romfs
 
 APP_AUTHOR	:=	Will Smith
 APP_TITLE	:=	Vapor Spec
-APP_VERSION	:=	0.4.0
+APP_VERSION	:=	0.4.1
 
 #---------------------------------------------------------------------------------
 # options for code generation

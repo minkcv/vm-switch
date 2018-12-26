@@ -33,7 +33,7 @@ typedef struct
 struct GPU
 {
     SpriteAttr sprAttrs[NUM_SPRITES];
-    SDL_Surface* surface;
+    uint8_t* pixels;
     int pitch;
     int bytesPerPixel;
     unsigned int active : 1;

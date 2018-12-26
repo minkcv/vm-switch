@@ -105,7 +105,7 @@ void run(VM* vm)
             {
                 readSpritesFromMem(vm->gpu, vm->memory);
                 drawSprites(vm->gpu, vm->memory);
-                updateDisplay(vm->display);
+                updateDisplay(vm->display, vm->gpu);
             }
             displayStartTime = SDL_GetTicks();
         }

@@ -1,9 +1,9 @@
 #include "vm.h"
 #include "opcodes.h"
 #include "instruction.h"
-#include <SDL2/SDL.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <switch.h>
 
 // Creates a vm with the supplied code
 VM* createVM(uint16_t* code, uint8_t* rom, Display* display, int debugMode)
@@ -48,30 +48,16 @@ void run(VM* vm)
     uint32_t instructionsPerSecondFactor = 62;
 
     int wait = 0;
-    SDL_Event event;
-    SDL_PollEvent(&event);
     Instruction* decoded = malloc(sizeof(Instruction));
 
-    // Is SDL_QUIT the home button on switch?
-    while (event.type != SDL_QUIT && 
-          !(event.type == SDL_JOYBUTTONDOWN && event.jbutton.button == 10))
+    uint64_t kDown = 0;
+    uint64_t kUp = 0;
+    while (!(kDown & KEY_PLUS))
     {
-        while (SDL_PollEvent(&event))
-        {
-            if (vm->debugMode && event.type == SDL_KEYUP)
-            {
-                handleDebugKey(vm, event.key.keysym.sym);
-            }
-            if (event.type == SDL_JOYBUTTONDOWN ||
-                event.type == SDL_JOYBUTTONUP ||
-                event.type == SDL_JOYAXISMOTION)
-            {
-                updateIPU(vm->ipu, event, vm->memory);
-            }
-        }
-
-        if (vm->breakState)
-            continue;
+        hidScanInput();
+        kDown = hidKeysDown(CONTROLLER_P1_AUTO);
+        kUp = hidKeysUp(CONTROLLER_P1_AUTO);
+        updateIPU(vm->ipu, kDown, kUp, vm->memory);
 
         // Executing
         if (!wait)

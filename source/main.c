@@ -118,8 +118,8 @@ int gameMenu(uint16_t** code, uint8_t** rom)
 
 int main (int argc, char** argv)
 {
-    uint16_t* code = readBinary("pong.bin", 0);
-    uint8_t* rom = NULL;
+    uint16_t* code = readBinary("dungeon.bin", 0);
+    uint8_t* rom = readRom("dungeon.rom", 0);
     int scale = 1;
     int quit = 0;//gameMenu(&code, &rom);
     if (!quit && code != NULL)

@@ -118,11 +118,11 @@ int gameMenu(uint16_t** code, uint8_t** rom)
 
 int main (int argc, char** argv)
 {
-    uint16_t* code = readBinary("dungeon.bin", 0);
-    uint8_t* rom = readRom("dungeon.rom", 0);
+    uint16_t* code = NULL;//readBinary("dungeon.bin", 0);
+    uint8_t* rom = NULL;//readRom("dungeon.rom", 0);
     int scale = 1;
-    int quit = 0;//gameMenu(&code, &rom);
-    if (!quit && code != NULL)
+    int quit = gameMenu(&code, &rom);
+    while (!quit && code != NULL)
     {
         int debugMode = 0;
         Display* display = createDisplay(SCREEN_WIDTH, SCREEN_HEIGHT, scale, SCREEN_WIDTH / 4);
@@ -133,6 +133,9 @@ int main (int argc, char** argv)
             free(rom);
         rom = NULL;
         free(code);
+
+        // Show menu again
+        quit = gameMenu(&code, &rom);
     }
     return 0;
 }

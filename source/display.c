@@ -208,5 +208,4 @@ void quitDisplay(Display* display)
     deinitEGL(display);
     free(display);
     display = NULL;
-    SDL_Quit();
 }

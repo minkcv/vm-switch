@@ -1,17 +1,19 @@
 #include "gpu.h"
 #include <stdlib.h>
+#include <EGL/egl.h>    // EGL library
+#include <EGL/eglext.h> // EGL extensions
+#include <glad/glad.h>  // glad library (OpenGL loader)
 
 GPU* createGPU(Display* display)
 {
     GPU* gpu = (GPU*)malloc(sizeof(GPU));
     gpu->active = 1;
-    gpu->bytesPerPixel = 3; // From SDL_PIXELFORMAT_RGB24 in display.c
+    gpu->bytesPerPixel = 3;
     gpu->pitch = SCREEN_WIDTH * gpu->bytesPerPixel;
-    gpu->surface = display->surface;
     gpu->scale = display->scale;
     gpu->leftMargin = (1280 / 2) - ((SCREEN_WIDTH * gpu->scale) / 2);
     gpu->topMargin = (720 / 2) - ((SCREEN_HEIGHT * gpu->scale) / 2);
-    SDL_FillRect(gpu->surface, NULL, SDL_MapRGB(gpu->surface->format, 0, 0, 0));
+    gpu->pixels = malloc(sizeof(uint8_t) * gpu->bytesPerPixel * SCREEN_WIDTH * SCREEN_HEIGHT);
     return gpu;
 }
 
@@ -62,12 +64,12 @@ void drawSprites(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_S
     uint8_t bgRed = getRed(bgColorIndex);
     uint8_t bgGreen = getGreen(bgColorIndex);
     uint8_t bgBlue = getBlue(bgColorIndex);
-    SDL_Rect rect;
-    rect.x = gpu->leftMargin;
-    rect.y = gpu->topMargin;
-    rect.w = SCREEN_WIDTH * gpu->scale;
-    rect.h = SCREEN_HEIGHT * gpu->scale;
-    SDL_FillRect(gpu->surface, &rect, SDL_MapRGB(gpu->surface->format, bgRed, bgGreen, bgBlue));
+    for (i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT * gpu->bytesPerPixel; i+=gpu->bytesPerPixel)
+    {
+        *(gpu->pixels + i) = bgRed;
+        *(gpu->pixels + i + 1) = bgGreen;
+        *(gpu->pixels + i + 2) = bgBlue;
+    }
     for (i = 0; i < NUM_SPRITES; i++)
     {
         if (gpu->sprAttrs[i].active && 
@@ -119,28 +121,30 @@ void drawSprites(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_S
                     uint8_t pixel2 = gpu->sprAttrs[i].colors[bits2];
                     uint8_t pixel3 = gpu->sprAttrs[i].colors[bits3];
                     uint8_t pixel4 = gpu->sprAttrs[i].colors[bits4];
-                    rect.x = gpu->leftMargin + (x * gpu->scale) + (w * gpu->scale * 4);
-                    rect.y = gpu->topMargin + (y * gpu->scale) + (h * gpu->scale);
-                    rect.w = gpu->scale; // scale = 1 pixel
-                    rect.h = gpu->scale; // scale = 1 pixel
+                    uint8_t* curPixel = gpu->pixels + (x * gpu->bytesPerPixel) + (y * gpu->pitch) + (w * gpu->bytesPerPixel * 4) + (h * gpu->pitch);
                     if (!(gpu->sprAttrs[i].color4Alpha && bits1 == 0x3))
                     {
-                        SDL_FillRect(gpu->surface, &rect, SDL_MapRGB(gpu->surface->format, getRed(pixel1), getGreen(pixel1), getBlue(pixel1)));
+                        *curPixel = getRed(pixel1);
+                        *(curPixel + 1) = getGreen(pixel1);
+                        *(curPixel + 2) = getBlue(pixel1);
                     }
                     if (!(gpu->sprAttrs[i].color4Alpha && bits2 == 0x3))
                     {
-                        rect.x = gpu->leftMargin + (x * gpu->scale) + (w * gpu->scale * 4) + (1 * gpu->scale);
-                        SDL_FillRect(gpu->surface, &rect, SDL_MapRGB(gpu->surface->format, getRed(pixel2), getGreen(pixel2), getBlue(pixel2)));
+                        *(curPixel + 3) = getRed(pixel2);
+                        *(curPixel + 4) = getGreen(pixel2);
+                        *(curPixel + 5) = getBlue(pixel2);
                     }
                     if (!(gpu->sprAttrs[i].color4Alpha && bits3 == 0x3))
                     {
-                        rect.x = gpu->leftMargin + (x * gpu->scale) + (w * gpu->scale * 4) + (2 * gpu->scale);
-                        SDL_FillRect(gpu->surface, &rect, SDL_MapRGB(gpu->surface->format, getRed(pixel3), getGreen(pixel3), getBlue(pixel3)));
+                        *(curPixel + 6) = getRed(pixel3);
+                        *(curPixel + 7) = getGreen(pixel3);
+                        *(curPixel + 8) = getBlue(pixel3);
                     }
                     if (!(gpu->sprAttrs[i].color4Alpha && bits4 == 0x3))
                     {
-                        rect.x = gpu->leftMargin + (x * gpu->scale) + (w * gpu->scale * 4) + (3 * gpu->scale);
-                        SDL_FillRect(gpu->surface, &rect, SDL_MapRGB(gpu->surface->format, getRed(pixel4), getGreen(pixel4), getBlue(pixel4)));
+                        *(curPixel + 9) = getRed(pixel4);
+                        *(curPixel + 10) = getGreen(pixel4);
+                        *(curPixel + 11) = getBlue(pixel4);
                     }
                 }
             }

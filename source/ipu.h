@@ -3,7 +3,8 @@
 
 #include "constants.h"
 #include "joystick.h"
-#include <SDL2/SDL.h>
+#include <stdlib.h>
+#include <switch.h>
 
 // Input Processing Unit
 typedef struct IPU IPU;
@@ -18,10 +19,10 @@ IPU* createIPU();
 
 void destroyIPU(IPU* ipu);
 
-void updateIPU(IPU* ipu, SDL_Event event,
+void updateIPU(IPU* ipu, uint64_t kDown, uint64_t kUp,
         uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_SIZE]);
 
-void updateJoystick(JOYSTICK* js, SDL_Event event);
+void updateJoystick(JOYSTICK* js, uint64_t kDown, uint64_t kUp);
 
 #endif
 

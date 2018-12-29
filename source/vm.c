@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 // Creates a vm with the supplied code
-VM* createVM(uint16_t* code, uint8_t* rom, Display* display, int debugMode, uint8_t* pixels)
+VM* createVM(uint16_t* code, uint8_t* rom, Display* display, int debugMode)
 {
     VM* vm = (VM*)malloc(sizeof(VM));
     vm->code = code;
@@ -15,7 +15,7 @@ VM* createVM(uint16_t* code, uint8_t* rom, Display* display, int debugMode, uint
     vm->breakState = 0;
     vm->step = 0;
     vm->display = display;
-    vm->gpu = createGPU(display, pixels);
+    vm->gpu = createGPU(display);
     vm->ipu = createIPU();
     memset(vm->memory, 0, sizeof(vm->memory[0][0]) * MEMORY_SEGMENT_COUNT * MEMORY_SEGMENT_SIZE);
     memset(vm->regs, 0, sizeof(vm->regs[0]) * REGISTER_COUNT);

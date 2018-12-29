@@ -29,7 +29,7 @@ struct VM
     int step;
 };
 
-VM* createVM(uint16_t* code, uint8_t* rom, Display* display, int debugMode, uint8_t* pixels);
+VM* createVM(uint16_t* code, uint8_t* rom, Display* display, int debugMode);
 
 void destroyVM(VM* vm);
 

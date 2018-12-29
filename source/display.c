@@ -15,7 +15,7 @@ GLuint loadShaderProgram(GLenum type, const char* source)
 	return handle;
 }
 
-Display* createDisplay(int width, int height, int scale, int pitch, uint8_t* pixels)
+Display* createDisplay(int width, int height, int scale, int pitch)
 {
     SDL_Init(SDL_INIT_JOYSTICK);
 
@@ -28,12 +28,12 @@ Display* createDisplay(int width, int height, int scale, int pitch, uint8_t* pix
     gladLoadGL();
 
     // Load our shaders
-	display->s_tilemapVsh = loadShaderProgram(GL_VERTEX_SHADER, vertexShaderSource);
-	display->s_tilemapFsh = loadShaderProgram(GL_FRAGMENT_SHADER, fragmentShaderSource);
+	display->vertexShader = loadShaderProgram(GL_VERTEX_SHADER, vertexShaderSource);
+	display->fragmentShader = loadShaderProgram(GL_FRAGMENT_SHADER, fragmentShaderSource);
 
 	display->shaderProgram = glCreateProgram();
-	glAttachShader(display->shaderProgram, display->s_tilemapVsh);
-    glAttachShader(display->shaderProgram, display->s_tilemapFsh);
+	glAttachShader(display->shaderProgram, display->vertexShader);
+    glAttachShader(display->shaderProgram, display->fragmentShader);
  
     glLinkProgram(display->shaderProgram);
     glUseProgram(display->shaderProgram);
@@ -42,7 +42,7 @@ Display* createDisplay(int width, int height, int scale, int pitch, uint8_t* pix
 	glGenTextures(1, &(display->textureId));
 	glActiveTexture(GL_TEXTURE0); // activate the texture unit first before binding texture
 	glBindTexture(GL_TEXTURE_2D, display->textureId);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -55,7 +55,7 @@ Display* createDisplay(int width, int height, int scale, int pitch, uint8_t* pix
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Configure viewport
-	glViewport(0, 0, width, height);
+	glViewport(0, 0, 1280, 800);
 
     return display;
 }
@@ -150,13 +150,13 @@ void updateDisplay(Display* display, GPU* gpu)
    	// Set the viewport
    	//glViewport ( 0, 0, display->width, display->height );
 
-   	glClearColor(0, 0.5, 0, 1.0);
+   	glClearColor(0, 0, 0, 1.0);
 
    	// Clear the color buffer
    	glClear ( GL_COLOR_BUFFER_BIT );
 
    	// Use the program object
-   	//glUseProgram ( display->s_tilemapVsh );
+   	//glUseProgram ( display->vertexShader );
 
    	// Load the vertex position
    	glVertexAttribPointer ( 0, 3, GL_FLOAT,
@@ -171,6 +171,7 @@ void updateDisplay(Display* display, GPU* gpu)
    	// Bind the texture
    	glActiveTexture ( GL_TEXTURE0 );
    	glBindTexture ( GL_TEXTURE_2D, display->textureId );
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, display->width, display->height, 0, GL_RGB, GL_UNSIGNED_BYTE, gpu->pixels);
 
    	// Set the sampler texture unit to 0
    	glUniform1i ( display->samplerLoc, 0 );
@@ -204,8 +205,8 @@ void deinitEGL(Display* display)
 void quitDisplay(Display* display)
 {
 	glDeleteProgram(display->shaderProgram);
-	glDeleteProgram(display->s_tilemapFsh);
-	glDeleteProgram(display->s_tilemapVsh);
+	glDeleteProgram(display->fragmentShader);
+	glDeleteProgram(display->vertexShader);
     deinitEGL(display);
     free(display);
     display = NULL;

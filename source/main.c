@@ -125,11 +125,8 @@ int main (int argc, char** argv)
     if (!quit && code != NULL)
     {
         int debugMode = 0;
-        int bytesPerPixel = 3;
-        uint8_t* pixels = malloc(sizeof(uint8_t) * bytesPerPixel * SCREEN_WIDTH * SCREEN_HEIGHT);
-        memset(pixels, 0xFF, SCREEN_WIDTH * SCREEN_HEIGHT * bytesPerPixel);
-        Display* display = createDisplay(SCREEN_WIDTH, SCREEN_HEIGHT, scale, SCREEN_WIDTH / 4, pixels);
-        VM* vm = createVM(code, rom, display, debugMode, pixels);
+        Display* display = createDisplay(SCREEN_WIDTH, SCREEN_HEIGHT, scale, SCREEN_WIDTH / 4);
+        VM* vm = createVM(code, rom, display, debugMode);
         run(vm);
         quitDisplay(display);
         if (rom != NULL)

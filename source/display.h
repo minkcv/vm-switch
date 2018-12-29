@@ -48,7 +48,7 @@ struct Display
     EGLDisplay s_display;
 	EGLContext s_context;
 	EGLSurface s_surface;
-    GLuint s_tilemapVsh, s_tilemapFsh;
+    GLuint vertexShader, fragmentShader;
 	GLuint shaderProgram;
 	GLint  samplerLoc;
 	GLuint textureId;
@@ -56,7 +56,7 @@ struct Display
 
 GLuint loadShaderProgram(GLenum type, const char* source);
 
-Display* createDisplay(int width, int height, int scale, int pitch, uint8_t* pixels);
+Display* createDisplay(int width, int height, int scale, int pitch);
 
 int initEGL(Display* display);
 

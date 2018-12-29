@@ -43,7 +43,7 @@ struct GPU
     int topMargin;
 };
 
-GPU* createGPU(Display* display);
+GPU* createGPU(Display* display, uint8_t* pixels);
 
 void destroyGPU(GPU* gpu);
 

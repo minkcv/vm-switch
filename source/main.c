@@ -118,15 +118,18 @@ int gameMenu(uint16_t** code, uint8_t** rom)
 
 int main (int argc, char** argv)
 {
-    uint16_t* code = NULL;
+    uint16_t* code = readBinary("pong.bin", 0);
     uint8_t* rom = NULL;
-    int scale = 3;
-    int quit = gameMenu(&code, &rom);
+    int scale = 1;
+    int quit = 0;//gameMenu(&code, &rom);
     if (!quit && code != NULL)
     {
         int debugMode = 0;
-        Display* display = createDisplay(SCREEN_WIDTH, SCREEN_HEIGHT, scale, SCREEN_WIDTH / 4);
-        VM* vm = createVM(code, rom, display, debugMode);
+        int bytesPerPixel = 3;
+        uint8_t* pixels = malloc(sizeof(uint8_t) * bytesPerPixel * SCREEN_WIDTH * SCREEN_HEIGHT);
+        memset(pixels, 0xFF, SCREEN_WIDTH * SCREEN_HEIGHT * bytesPerPixel);
+        Display* display = createDisplay(SCREEN_WIDTH, SCREEN_HEIGHT, scale, SCREEN_WIDTH / 4, pixels);
+        VM* vm = createVM(code, rom, display, debugMode, pixels);
         run(vm);
         quitDisplay(display);
         if (rom != NULL)

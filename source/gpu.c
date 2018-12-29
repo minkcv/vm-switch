@@ -4,7 +4,7 @@
 #include <EGL/eglext.h> // EGL extensions
 #include <glad/glad.h>  // glad library (OpenGL loader)
 
-GPU* createGPU(Display* display)
+GPU* createGPU(Display* display, uint8_t* pixels)
 {
     GPU* gpu = (GPU*)malloc(sizeof(GPU));
     gpu->active = 1;
@@ -13,7 +13,7 @@ GPU* createGPU(Display* display)
     gpu->scale = display->scale;
     gpu->leftMargin = (1280 / 2) - ((SCREEN_WIDTH * gpu->scale) / 2);
     gpu->topMargin = (720 / 2) - ((SCREEN_HEIGHT * gpu->scale) / 2);
-    gpu->pixels = malloc(sizeof(uint8_t) * gpu->bytesPerPixel * SCREEN_WIDTH * SCREEN_HEIGHT);
+    gpu->pixels = pixels;
     return gpu;
 }
 

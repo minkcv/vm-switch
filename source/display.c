@@ -2,25 +2,22 @@
 
 GLuint loadShaderProgram(GLenum type, const char* source)
 {
-	GLint success;
-	GLchar msg[512];
-
-	GLuint handle = glCreateShaderProgramv(type, 1, &source);
-	glGetProgramiv(handle, GL_LINK_STATUS, &success);
-	if (success == GL_FALSE)
+	GLuint handle = glCreateShader(type);
+	glShaderSource(handle, 1, &source, NULL);
+	glCompileShader(handle);
+	GLint compiled;
+	glGetShaderiv(handle, GL_COMPILE_STATUS, &compiled);
+	if (!compiled)
 	{
-		glGetProgramInfoLog(handle, sizeof(msg), NULL, msg);
-		//TRACE("Shader error: %s", msg);
-		glDeleteProgram(handle);
-		handle = 0;
+		glDeleteShader(handle);
+		return 0;
 	}
-
 	return handle;
 }
 
-Display* createDisplay(int width, int height, int scale, int pitch)
+Display* createDisplay(int width, int height, int scale, int pitch, uint8_t* pixels)
 {
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
+    SDL_Init(SDL_INIT_JOYSTICK);
 
     Display* display = (Display*)malloc(sizeof(Display));
     display->width = width;
@@ -34,42 +31,31 @@ Display* createDisplay(int width, int height, int scale, int pitch)
 	display->s_tilemapVsh = loadShaderProgram(GL_VERTEX_SHADER, vertexShaderSource);
 	display->s_tilemapFsh = loadShaderProgram(GL_FRAGMENT_SHADER, fragmentShaderSource);
 
-    // Configure tilemap dimensions
-	glProgramUniform2i(display->s_tilemapVsh, glGetUniformLocation(display->s_tilemapVsh, "dimensions"),
-		display->width, display->height
-	);
+	display->shaderProgram = glCreateProgram();
+	glAttachShader(display->shaderProgram, display->s_tilemapVsh);
+    glAttachShader(display->shaderProgram, display->s_tilemapFsh);
+ 
+    glLinkProgram(display->shaderProgram);
+    glUseProgram(display->shaderProgram);
 
-    // Create a program pipeline and attach the programs to their respective stages
-	glGenProgramPipelines(1, &(display->s_tilemapPipeline));
-	glUseProgramStages(display->s_tilemapPipeline, GL_VERTEX_SHADER_BIT,   display->s_tilemapVsh);
-	glUseProgramStages(display->s_tilemapPipeline, GL_FRAGMENT_SHADER_BIT, display->s_tilemapFsh);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glGenTextures(1, &(display->textureId));
+	glActiveTexture(GL_TEXTURE0); // activate the texture unit first before binding texture
+	glBindTexture(GL_TEXTURE_2D, display->textureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	// Create a VAO and a VBO for the tilemap
-	glGenVertexArrays(1, &(display->s_tilemapVao));
-	glBindVertexArray(display->s_tilemapVao);
-
-	// Allocate the tilemap data
-	glGenBuffers(1, &(display->s_tilemapVbo));
-	glBindBuffer(GL_ARRAY_BUFFER, display->s_tilemapVbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(uint8_t) * display->width * display->height, NULL, GL_DYNAMIC_DRAW);
-
-	// Configure the only vertex attribute (which is per-instance)
-	glVertexAttribIPointer(0, 1, GL_UNSIGNED_BYTE, sizeof(uint8_t), (void*)0);
-	glVertexAttribDivisor(0, 1);
-	glEnableVertexAttribArray(0);
-
-	// We're done with the VBO/VAO, unbind them
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	display->samplerLoc = glGetUniformLocation(display->shaderProgram, "s_texture");
 
     // Other miscellaneous init
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
 	//glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Configure viewport
-	glViewport(0, 0, 1280, 720);
+	glViewport(0, 0, width, height);
 
     return display;
 }
@@ -88,7 +74,7 @@ int initEGL(Display* display)
 	eglInitialize(display->s_display, NULL, NULL);
 
 	// Select OpenGL (Core) as the desired graphics API
-	if (eglBindAPI(EGL_OPENGL_API) == EGL_FALSE)
+	if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE)
 	{
 		//TRACE("Could not set API! error: %d", eglGetError());
 		goto _fail1;
@@ -99,7 +85,7 @@ int initEGL(Display* display)
 	EGLint numConfigs;
 	static const EGLint framebufferAttributeList[] =
 	{
-		EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
 		EGL_RED_SIZE,     8,
 		EGL_GREEN_SIZE,   8,
 		EGL_BLUE_SIZE,    8,
@@ -124,9 +110,7 @@ int initEGL(Display* display)
 	// Create an EGL rendering context
 	static const EGLint contextAttributeList[] =
 	{
-		EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR,
-		EGL_CONTEXT_MAJOR_VERSION_KHR, 4,
-		EGL_CONTEXT_MINOR_VERSION_KHR, 3,
+		EGL_CONTEXT_CLIENT_VERSION, 2,
 		EGL_NONE
 	};
 	display->s_context = eglCreateContext(display->s_display, config, EGL_NO_CONTEXT, contextAttributeList);
@@ -152,20 +136,46 @@ _fail0:
 
 void updateDisplay(Display* display, GPU* gpu)
 {
-    // Clear the framebuffer
-	glClearColor(0x10/255.0f, 0x10/255.0f, 0x10/255.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+    GLfloat vVertices[] = { -0.5f,  0.5f, 0.0f, // Position 0
+                            0.0f,  0.0f,        // TexCoord 0 
+                           -0.5f, -0.5f, 0.0f,  // Position 1
+                            0.0f,  1.0f,        // TexCoord 1
+                            0.5f, -0.5f, 0.0f,  // Position 2
+                            1.0f,  1.0f,        // TexCoord 2
+                            0.5f,  0.5f, 0.0f,  // Position 3
+                            1.0f,  0.0f         // TexCoord 3
+                         };
+   	GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
 
-	// Update tilemap
-	glBindBuffer(GL_ARRAY_BUFFER, display->s_tilemapVbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(uint8_t) * display->width * display->height, gpu->pixels);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+   	// Set the viewport
+   	//glViewport ( 0, 0, display->width, display->height );
 
-	// Draw the tilemap
-	glBindProgramPipeline(display->s_tilemapPipeline);
-	glBindVertexArray(display->s_tilemapVao);
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, display->width * display->height);
-	glBindVertexArray(0);
+   	glClearColor(0, 0.5, 0, 1.0);
+
+   	// Clear the color buffer
+   	glClear ( GL_COLOR_BUFFER_BIT );
+
+   	// Use the program object
+   	//glUseProgram ( display->s_tilemapVsh );
+
+   	// Load the vertex position
+   	glVertexAttribPointer ( 0, 3, GL_FLOAT,
+                           GL_FALSE, 5 * sizeof ( GLfloat ), vVertices );
+   	// Load the texture coordinate
+   	glVertexAttribPointer ( 1, 2, GL_FLOAT,
+                           GL_FALSE, 5 * sizeof ( GLfloat ), &vVertices[3] );
+
+   	glEnableVertexAttribArray ( 0 );
+   	glEnableVertexAttribArray ( 1 );
+
+   	// Bind the texture
+   	glActiveTexture ( GL_TEXTURE0 );
+   	glBindTexture ( GL_TEXTURE_2D, display->textureId );
+
+   	// Set the sampler texture unit to 0
+   	glUniform1i ( display->samplerLoc, 0 );
+
+   	glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices );
 
 	// Swap buffers
 	eglSwapBuffers(display->s_display, display->s_surface);
@@ -193,9 +203,7 @@ void deinitEGL(Display* display)
 
 void quitDisplay(Display* display)
 {
-	glDeleteBuffers(1, &(display->s_tilemapVbo));
-	glDeleteVertexArrays(1, &(display->s_tilemapVao));
-	glDeleteProgramPipelines(1, &(display->s_tilemapPipeline));
+	glDeleteProgram(display->shaderProgram);
 	glDeleteProgram(display->s_tilemapFsh);
 	glDeleteProgram(display->s_tilemapVsh);
     deinitEGL(display);

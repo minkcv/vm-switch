@@ -3,7 +3,6 @@
 
 #include "constants.h"
 #include "gpu.h"
-#include <SDL2/SDL.h>
 #include <EGL/egl.h>    // EGL library
 #include <EGL/eglext.h> // EGL extensions
 #include <glad/glad.h>  // glad library (OpenGL loader)
@@ -20,8 +19,8 @@ layout(location = 1) in vec2 a_texCoord;
 out vec2 v_texCoord;
 void main()
 {
-	gl_Position = a_position;
-	v_texCoord = a_texCoord;
+    gl_Position = a_position;
+    v_texCoord = a_texCoord;
 }
 )text";
 
@@ -35,7 +34,7 @@ layout(location = 0) out vec4 outColor;
 uniform sampler2D s_texture;
 void main()
 {
-	outColor = texture(s_texture, v_texCoord);
+    outColor = texture(s_texture, v_texCoord);
 }
 )text";
 
@@ -46,12 +45,12 @@ struct Display
     int scale;
     int pitch;
     EGLDisplay s_display;
-	EGLContext s_context;
-	EGLSurface s_surface;
+    EGLContext s_context;
+    EGLSurface s_surface;
     GLuint vertexShader, fragmentShader;
-	GLuint shaderProgram;
-	GLint  samplerLoc;
-	GLuint textureId;
+    GLuint shaderProgram;
+    GLint  samplerLoc;
+    GLuint textureId;
 };
 
 GLuint loadShaderProgram(GLenum type, const char* source);

@@ -44,8 +44,9 @@ void run(VM* vm)
     uint32_t cpuInstructionCount = 0;
 
     // Enforce the instructions per second limit in sync with the display refreshes
-    // 500,000 instructions per second is almost the same as 8064 instructions per 16 milliseconds
-    uint32_t instructionsPerSecondFactor = 62;
+    // 500,000 instructions per second is almost the same as 8064 instructions per 16 milliseconds.
+    // 500,000 IPS == 8064 instructions / 0.0016 seconds
+    uint32_t instructionsPerFrame = 8064;
 
     int wait = 0;
     Instruction* decoded = malloc(sizeof(Instruction));
@@ -68,17 +69,17 @@ void run(VM* vm)
             vm->pc++;
             cpuInstructionCount++;
 
-            if (cpuInstructionCount > INSTRUCTIONS_PER_SECOND / instructionsPerSecondFactor)
+            if (cpuInstructionCount > instructionsPerFrame)
                 wait = 1;
         }
-        if ((SDL_GetTicks() - cpuStartTime) > 1000 / instructionsPerSecondFactor)
+        if ((SDL_GetTicks() - cpuStartTime) > 16)
         {
             // 16 milliseconds have passed
             // Reset the instruction count and timer
-            if (cpuInstructionCount < INSTRUCTIONS_PER_SECOND / instructionsPerSecondFactor)
+            if (cpuInstructionCount < instructionsPerFrame)
             {
-                //printf("Running below desired instructions per second\n");
-                //printf("Desired: %d Actual: %d\n", INSTRUCTIONS_PER_SECOND / instructionsPerSecondFactor, cpuInstructionCount);
+                //printf("Running below desired instructions per frame\n");
+                //printf("Desired: %d Actual: %d\n", instructionsPerFrame, cpuInstructionCount);
             }
             cpuInstructionCount = 0;
             cpuStartTime = SDL_GetTicks();

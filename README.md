@@ -11,7 +11,7 @@ See the [devkitPro Getting Started page](https://devkitpro.org/wiki/Getting_Star
 
 Install dependencies
 
-    pacman -S devkitA64 libnx switch-tools switch-sdl2
+    pacman -S devkitA64 libnx switch-tools switch-sdl2 switch-mesa switch-glad switch-glm
 
 then, after cloning this repo,
 

@@ -28,11 +28,12 @@ Put the `vm-switch.nro` and the `vaporspec` folder in the `switch` folder on you
 The SD card should now look like this:
 
     switch/
-        vm-switch.nro
-        vaporspec/
-            gamelist.txt
-            pong.bin
-            (other game files)
+        VaporSpecSwitch/
+            vm-switch.nro
+            vaporspec/
+                gamelist.txt
+                pong.bin
+                (other game files)
 
 You can add other games by adding a line in `gamelist.txt` with the following items separated by semicolons.
 

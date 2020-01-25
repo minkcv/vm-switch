@@ -55,9 +55,10 @@ int gameMenu(uint16_t** code, uint8_t** rom)
     fseek(gameList, 0, SEEK_END);
     size_t size = ftell(gameList);
     fseek(gameList, 0, SEEK_SET);
-    char* contents = malloc(size + 1);
-    fread(contents, 1, size + 1, gameList);
-    int numGames = -1;
+    char* contents = malloc(size);
+    memset(contents, 0, size);
+    fread(contents, 1, size, gameList);
+    int numGames = 0;
     char* line = strtok(contents, "\n");
     while (line != NULL)
     {
@@ -66,10 +67,10 @@ int gameMenu(uint16_t** code, uint8_t** rom)
             char* name = strsep(&line, ";");
             char* codeName = strsep(&line, ";");
             char* romName = strsep(&line, ";");
-            numGames++;
             gameData[numGames].name = name;
             gameData[numGames].codeName = codeName;
             gameData[numGames].romName = romName;
+            numGames++;
         }
         line = strtok(NULL, "\n");
     }

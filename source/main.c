@@ -31,20 +31,22 @@ void printGameList(int cursorPos, int numGames, GameData gameData[256])
     for (i = 0; i < numGames; i++)
     {
         if (i == cursorPos)
-            printf("\x1b[%d;0H> %s - %s  %s", i + startRow, gameData[i].name, gameData[i].codeName, gameData[i].romName);
+            printf(CONSOLE_ESC(%d;0H)"> %s - %s  %s", i + startRow, gameData[i].name, gameData[i].codeName, gameData[i].romName);
         else
-            printf("\x1b[%d;0H  %s - %s  %s", i + startRow, gameData[i].name, gameData[i].codeName, gameData[i].romName);
+            printf(CONSOLE_ESC(%d;0H)"  %s - %s  %s", i + startRow, gameData[i].name, gameData[i].codeName, gameData[i].romName);
     }
 }
 
 int gameMenu(uint16_t** code, uint8_t** rom)
 {
     consoleInit(NULL);
+    printf( CONSOLE_ESC(2J) );
+
     GameData gameData[256];
     FILE* gameList = fopen("vaporspec/gamelist.txt", "r");
     if (gameList == NULL)
     {
-        printf("\x1b[0;0HMissing vaporspec/gamelist.txt");
+        printf(CONSOLE_ESC(0;0H)"Missing vaporspec/gamelist.txt");
         consoleUpdate(NULL);
         sleep(2);
         consoleExit(NULL);
@@ -59,22 +61,25 @@ int gameMenu(uint16_t** code, uint8_t** rom)
     char* line = strtok(contents, "\n");
     while (line != NULL)
     {
-        char* name = strsep(&line, ";");
-        char* codeName = strsep(&line, ";");
-        char* romName = strsep(&line, ";");
-        gameData[numGames].name = name;
-        gameData[numGames].codeName = codeName;
-        gameData[numGames].romName = romName;
-        numGames++;
+        if (line[0] != '\n')
+        {
+            char* name = strsep(&line, ";");
+            char* codeName = strsep(&line, ";");
+            char* romName = strsep(&line, ";");
+            gameData[numGames].name = name;
+            gameData[numGames].codeName = codeName;
+            gameData[numGames].romName = romName;
+            numGames++;
+        }
         line = strtok(NULL, "\n");
     }
 
     int cursorPos = 0;
     while(1)
     {
-        printf("\x1b[0;0HVapor Spec Virtual Game Platform by Will Smith (minkcv)");
-        printf("\x1b[2;0HSelect game with up/down. Start with A. Quit with +.");
-        printf("\x1b[3;0HMore info at github.com/minkcv/vm");
+        printf(CONSOLE_ESC(0;0H)"Vapor Spec Virtual Game Platform by Will Smith (minkcv)");
+        printf(CONSOLE_ESC(2;0H)"Select game with up/down. Start with A. Quit with +.");
+        printf(CONSOLE_ESC(3;0H)"More info at github.com/minkcv/vm");
         printGameList(cursorPos, numGames, gameData);
         hidScanInput();
         uint64_t kDown = hidKeysDown(CONTROLLER_P1_AUTO);
@@ -150,7 +155,7 @@ uint16_t* readBinary(const char* filename, int print)
     FILE* bin = fopen(path, "rb");
     if (bin == NULL)
     {
-        printf("\x1b[0;0HError reading file %s\n", path);
+        printf(CONSOLE_ESC(0;0H)"Error reading file %s\n", path);
         consoleUpdate(NULL);
         sleep(2);
         free(path);
@@ -159,7 +164,7 @@ uint16_t* readBinary(const char* filename, int print)
     size_t numInstructions = 0;
     // binaries are length prefixed
     fread(&numInstructions, sizeof(uint16_t), 1, bin);
-    printf("\x1b[0;0HBinary is %zd instructions\n", numInstructions);
+    printf(CONSOLE_ESC(0;0H)"Binary is %zd instructions\n", numInstructions);
     consoleUpdate(NULL);
     uint16_t* code = malloc(sizeof(uint16_t) * numInstructions);
     fread(code, sizeof(uint16_t), numInstructions, bin);
@@ -168,7 +173,7 @@ uint16_t* readBinary(const char* filename, int print)
         int i;
         for (i = 0; i < numInstructions; i++)
         {
-            printf("\x1b[%d;0H%4X\n", i, code[i]);
+            printf(CONSOLE_ESC(%d;0H)"%4X\n", i, code[i]);
             consoleUpdate(NULL);
         }
     }
@@ -187,7 +192,7 @@ uint8_t* readRom(const char* filename, int print)
     FILE* romfile = fopen(path, "rb");
     if (romfile == NULL)
     {
-        printf("\x1b[0;0HError reading file %s\n", path);
+        printf(CONSOLE_ESC(0;0H)"Error reading file %s\n", path);
         consoleUpdate(NULL);
         sleep(2);
         free(path);
@@ -199,14 +204,14 @@ uint8_t* readRom(const char* filename, int print)
     size_t size = ftell(romfile);
     fseek(romfile, 0, SEEK_SET);
     size_t bytesRead = fread(rom, sizeof(uint8_t), size, romfile);
-    printf("\x1b[0;0HRead %zd bytes from the rom\n", bytesRead);
+    printf(CONSOLE_ESC(0;0H)"Read %zd bytes from the rom\n", bytesRead);
     consoleUpdate(NULL);
     if (print)
     {
         int i;
         for (i = 0; i < bytesRead; i++)
         {
-            printf("\x1b[%d;0H%2X\n", i, rom[i]);
+            printf(CONSOLE_ESC(%d;0H)"%2X\n", i, rom[i]);
             consoleUpdate(NULL);
         }
     }

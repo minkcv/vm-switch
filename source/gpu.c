@@ -72,21 +72,25 @@ void drawSprites(GPU* gpu, uint8_t memory[MEMORY_SEGMENT_COUNT][MEMORY_SEGMENT_S
     }
     for (i = 0; i < NUM_SPRITES; i++)
     {
+        int width = gpu->sprAttrs[i].width;
+        int height = gpu->sprAttrs[i].height;
+        if (width == 0)
+            width = SCREEN_WIDTH;
+        if (height == 0)
+            height = SCREEN_HEIGHT;
         if (gpu->sprAttrs[i].active && 
-                gpu->sprAttrs[i].x + gpu->sprAttrs[i].width <= SCREEN_WIDTH &&
-                gpu->sprAttrs[i].y + gpu->sprAttrs[i].height <= SCREEN_HEIGHT)
+                gpu->sprAttrs[i].x + width <= SCREEN_WIDTH &&
+                gpu->sprAttrs[i].y + height <= SCREEN_HEIGHT)
         {
             int w, h;
             int x = gpu->sprAttrs[i].x;
             int y = gpu->sprAttrs[i].y;
             int flipHor = gpu->sprAttrs[i].flipHor;
             int flipVer = gpu->sprAttrs[i].flipVer;
-            int width = gpu->sprAttrs[i].width;
-            int height = gpu->sprAttrs[i].height;
             uint8_t* sprite = &memory[gpu->sprAttrs[i].segmentAddr][gpu->sprAttrs[i].byteAddr];
-            for (h = 0; h < gpu->sprAttrs[i].height; h++)
+            for (h = 0; h < height; h++)
             {
-                for (w = 0; w < gpu->sprAttrs[i].width / 4; w++)
+                for (w = 0; w < width / 4; w++)
                 {
                     uint8_t fourPixels = 0;
                     if (flipHor == 0 && flipVer == 0)

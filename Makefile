@@ -35,18 +35,17 @@ BUILD		:=	build
 SOURCES		:=	source
 DATA		:=	data
 INCLUDES	:=	include
-EXEFS_SRC	:=	exefs_src
 ICON		:=	icon.jpg
 #ROMFS	:=	romfs
 
 APP_AUTHOR	:=	Will Smith
 APP_TITLE	:=	Vapor Spec
-APP_VERSION	:=	1.1.0
+APP_VERSION	:=	1.2.0
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
+ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
@@ -89,11 +88,10 @@ BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
-# CHANGED BY WILL to use CXX for C files because we need EGL which is C++
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(CPPFILES)),)
 #---------------------------------------------------------------------------------
-	export LD	:=	$(CXX)
+	export LD	:=	$(CC)
 #---------------------------------------------------------------------------------
 else
 #---------------------------------------------------------------------------------
@@ -113,7 +111,18 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-export BUILD_EXEFS_SRC := $(TOPDIR)/$(EXEFS_SRC)
+ifeq ($(strip $(CONFIG_JSON)),)
+	jsons := $(wildcard *.json)
+	ifneq (,$(findstring $(TARGET).json,$(jsons)))
+		export APP_JSON := $(TOPDIR)/$(TARGET).json
+	else
+		ifneq (,$(findstring config.json,$(jsons)))
+			export APP_JSON := $(TOPDIR)/config.json
+		endif
+	endif
+else
+	export APP_JSON := $(TOPDIR)/$(CONFIG_JSON)
+endif
 
 ifeq ($(strip $(ICON)),)
 	icons := $(wildcard *.jpg)
@@ -154,16 +163,13 @@ $(BUILD):
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
-# CUSTOM COMMAND MADE BY WILL
-# RyuJinx is a switch emulator that can run some homebrew programs.
-# https://github.com/Ryujinx/Ryujinx
-run: $(BUILD)
-	../ryujinx/Ryujinx.exe ./vm-switch.nro
-
-#---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
+ifeq ($(strip $(APP_JSON)),)
+	@rm -fr $(BUILD) $(TARGET).nro $(TARGET).nacp $(TARGET).elf
+else
+	@rm -fr $(BUILD) $(TARGET).nsp $(TARGET).nso $(TARGET).npdm $(TARGET).elf
+endif
 
 
 #---------------------------------------------------------------------------------
@@ -175,16 +181,24 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all	:	$(OUTPUT).pfs0 $(OUTPUT).nro
+ifeq ($(strip $(APP_JSON)),)
 
-$(OUTPUT).pfs0	:	$(OUTPUT).nso
-
-$(OUTPUT).nso	:	$(OUTPUT).elf
+all	:	$(OUTPUT).nro
 
 ifeq ($(strip $(NO_NACP)),)
 $(OUTPUT).nro	:	$(OUTPUT).elf $(OUTPUT).nacp
 else
 $(OUTPUT).nro	:	$(OUTPUT).elf
+endif
+
+else
+
+all	:	$(OUTPUT).nsp
+
+$(OUTPUT).nsp	:	$(OUTPUT).nso $(OUTPUT).npdm
+
+$(OUTPUT).nso	:	$(OUTPUT).elf
+
 endif
 
 $(OUTPUT).elf	:	$(OFILES)

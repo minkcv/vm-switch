@@ -134,16 +134,17 @@ _fail0:
 
 void updateDisplay(Display* display, GPU* gpu)
 {
-    // Height values: 1.0 or -1.0
-    // Width values: 0.75 or -0.75
-    // Because 256 / 192 is the same ratio as 1 / 0.75
-    GLfloat vVertices[] = {-0.75f,  1.0f, 0.0f, // Position 0
+    // Height values: 0.8 or -0.8
+    // Width values: 0.6 or -0.6
+    // Because the height 192 * 3 can fit in 720 (0.8)
+    // and for width (256 * 3) / 1280 = 0.6
+    GLfloat vVertices[] = {-0.6f,  0.8f, 0.0f, // Position 0
                             0.0f,  0.0f,        // TexCoord 0 
-                           -0.75f, -1.0f, 0.0f,  // Position 1
+                           -0.6f, -0.8f, 0.0f,  // Position 1
                             0.0f,  1.0f,        // TexCoord 1
-                            0.75f, -1.0f, 0.0f,  // Position 2
+                            0.6f, -0.8f, 0.0f,  // Position 2
                             1.0f,  1.0f,        // TexCoord 2
-                            0.75f,  1.0f, 0.0f,  // Position 3
+                            0.6f,  0.8f, 0.0f,  // Position 3
                             1.0f,  0.0f         // TexCoord 3
                          };
      GLushort indices[] = { 0, 1, 2, 0, 2, 3 };

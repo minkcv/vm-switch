@@ -40,7 +40,7 @@ ICON		:=	icon.jpg
 
 APP_AUTHOR	:=	Will Smith
 APP_TITLE	:=	Vapor Spec
-APP_VERSION	:=	1.2.0
+APP_VERSION	:=	1.3.0
 
 #---------------------------------------------------------------------------------
 # options for code generation
